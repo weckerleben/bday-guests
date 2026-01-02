@@ -175,8 +175,8 @@ function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <div className="header-top" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', flexWrap: 'wrap', gap: '1rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1, minWidth: 0 }}>
+        <div className="header-top">
+          <div className="header-title-section">
             <button
               className="mobile-menu-button"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -185,20 +185,64 @@ function App() {
             >
               {isMobileMenuOpen ? <CloseIcon /> : <MenuIcon />}
             </button>
-            <h1 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
+            <h1>
               <CakeIcon />
               <span className="title-desktop">Gestión de Invitados</span>
               <span className="title-mobile">Gestión de Cumpleaños</span>
             </h1>
           </div>
-          <SyncStatusIndicator />
+          <div className="header-right-section">
+            <nav className="tabs tabs-desktop" role="tablist" aria-label="Navegación principal">
+              <button
+                role="tab"
+                aria-selected={activeTab === 'guests'}
+                aria-controls="guests-panel"
+                id="guests-tab"
+                className={activeTab === 'guests' ? 'active' : ''}
+                onClick={() => handleTabChange('guests')}
+              >
+                Invitados
+              </button>
+              <button
+                role="tab"
+                aria-selected={activeTab === 'pricing'}
+                aria-controls="pricing-panel"
+                id="pricing-tab"
+                className={activeTab === 'pricing' ? 'active' : ''}
+                onClick={() => handleTabChange('pricing')}
+              >
+                Precios
+              </button>
+              <button
+                role="tab"
+                aria-selected={activeTab === 'summary'}
+                aria-controls="summary-panel"
+                id="summary-tab"
+                className={activeTab === 'summary' ? 'active' : ''}
+                onClick={() => handleTabChange('summary')}
+              >
+                Resumen
+              </button>
+              <button
+                role="tab"
+                aria-selected={activeTab === 'sync'}
+                aria-controls="sync-panel"
+                id="sync-tab"
+                className={activeTab === 'sync' ? 'active' : ''}
+                onClick={() => handleTabChange('sync')}
+              >
+                <SyncIcon style={{ fontSize: '1rem', marginRight: '0.25rem' }} /> Sincronizar
+              </button>
+            </nav>
+            <SyncStatusIndicator />
+          </div>
         </div>
-        <nav className="tabs tabs-desktop" role="tablist" aria-label="Navegación principal" style={{ marginTop: '1rem' }}>
+        <nav className="tabs tabs-desktop tabs-below" role="tablist" aria-label="Navegación principal">
           <button
             role="tab"
             aria-selected={activeTab === 'guests'}
             aria-controls="guests-panel"
-            id="guests-tab"
+            id="guests-tab-below"
             className={activeTab === 'guests' ? 'active' : ''}
             onClick={() => handleTabChange('guests')}
           >
@@ -208,7 +252,7 @@ function App() {
             role="tab"
             aria-selected={activeTab === 'pricing'}
             aria-controls="pricing-panel"
-            id="pricing-tab"
+            id="pricing-tab-below"
             className={activeTab === 'pricing' ? 'active' : ''}
             onClick={() => handleTabChange('pricing')}
           >
@@ -218,7 +262,7 @@ function App() {
             role="tab"
             aria-selected={activeTab === 'summary'}
             aria-controls="summary-panel"
-            id="summary-tab"
+            id="summary-tab-below"
             className={activeTab === 'summary' ? 'active' : ''}
             onClick={() => handleTabChange('summary')}
           >
@@ -228,7 +272,7 @@ function App() {
             role="tab"
             aria-selected={activeTab === 'sync'}
             aria-controls="sync-panel"
-            id="sync-tab"
+            id="sync-tab-below"
             className={activeTab === 'sync' ? 'active' : ''}
             onClick={() => handleTabChange('sync')}
           >
