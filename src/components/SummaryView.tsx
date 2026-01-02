@@ -23,8 +23,8 @@ export const SummaryView = ({ guests, pricing }: SummaryViewProps) => {
     );
   }
 
-  // Para invitados, solo los que están en estado "invited" (excluir declinados)
-  const invitedGuests = guests.filter((g) => g.status === 'invited');
+  // Para invitados, incluir invitados y confirmados (excluir solo declinados)
+  const invitedGuests = guests.filter((g) => g.status !== 'declined');
   const invitedStats = calculateGuestStats(invitedGuests);
   const invitedCosts = calculateCosts(invitedGuests, pricing);
 
