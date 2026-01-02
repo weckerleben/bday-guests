@@ -1,4 +1,4 @@
-# Sistema de Gestión de Invitados - Cumpleaños
+# Sistema de Gestión de Invitados
 
 Sistema web para gestionar invitados, confirmaciones y costos de una fiesta de cumpleaños.
 

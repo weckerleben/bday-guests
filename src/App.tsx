@@ -15,6 +15,7 @@ import { SyncConfig } from './components/SyncConfig';
 import { SyncStatusIndicator } from './components/SyncStatusIndicator';
 import { SkeletonLoader } from './components/SkeletonLoader';
 import { Toast } from './components/Toast';
+import { AUTO_SYNC_INTERVAL_MINUTES, AUTO_SYNC_CHECK_INTERVAL_MS } from './config';
 import './App.css';
 
 const ACTIVE_TAB_KEY = 'bday-active-tab';
@@ -62,6 +63,51 @@ function App() {
     };
     
     syncOnLoad();
+
+    // Sincronización automática cada 15 minutos después del último sync
+    const checkAndSync = async () => {
+      if (!syncService.isConfigured()) {
+        return;
+      }
+
+      const lastSyncTime = localStorage.getItem('bday-last-sync');
+      if (!lastSyncTime) {
+        // Si nunca se ha sincronizado, no hacer nada automáticamente
+        return;
+      }
+
+      const lastSync = parseInt(lastSyncTime);
+      const now = Date.now();
+      const syncIntervalMs = AUTO_SYNC_INTERVAL_MINUTES * 60 * 1000; // Convertir minutos a milisegundos
+
+      // Si han pasado los minutos configurados desde el último sync, sincronizar
+      if (now - lastSync >= syncIntervalMs) {
+        window.dispatchEvent(new Event('sync-start'));
+        const result = await storage.syncFromCloud(false); // false: solo sincronizar si hay cambios
+        if (result.success) {
+          window.dispatchEvent(new Event('sync-success'));
+          loadData();
+        } else {
+          // Solo mostrar error si no es el caso de "no hay datos nuevos" (que es normal)
+          if (result.error && result.error !== 'No hay datos nuevos en la nube') {
+            window.dispatchEvent(new Event('sync-error'));
+            setSyncError(`Error al sincronizar: ${result.error}`);
+            setTimeout(() => setSyncError(null), 5000);
+          } else {
+            // Si no hay datos nuevos, simplemente actualizar el timestamp para no volver a intentar inmediatamente
+            // No es un error, es una situación normal
+            window.dispatchEvent(new Event('sync-success'));
+          }
+        }
+      }
+    };
+
+    // Verificar periódicamente si es necesario sincronizar
+    const interval = setInterval(checkAndSync, AUTO_SYNC_CHECK_INTERVAL_MS);
+
+    return () => {
+      clearInterval(interval);
+    };
   }, []);
 
   const loadData = () => {
@@ -141,7 +187,7 @@ function App() {
             </button>
             <h1 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
               <CakeIcon />
-              <span className="title-desktop">Gestión de Invitados - Cumpleaños</span>
+              <span className="title-desktop">Gestión de Invitados</span>
               <span className="title-mobile">Gestión de Cumpleaños</span>
             </h1>
           </div>

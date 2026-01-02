@@ -272,9 +272,13 @@ export const storage = {
           localStorage.setItem(STORAGE_KEYS.LAST_SYNC, result.data.lastUpdated.toString());
           window.dispatchEvent(new Event('sync-success'));
           return { success: true };
+        } else {
+          // No hay datos nuevos, pero actualizar el timestamp del último intento para evitar reintentos inmediatos
+          localStorage.setItem(STORAGE_KEYS.LAST_SYNC, Date.now().toString());
         }
       }
-      return { success: false, error: 'No hay datos nuevos en la nube' };
+      // Retornar success: true cuando no hay datos nuevos (no es un error)
+      return { success: true };
     } catch (error) {
       console.error('Error syncing from cloud:', error);
       return { 
