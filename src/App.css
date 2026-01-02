@@ -161,7 +161,7 @@ body {
 .app-main {
   flex: 1;
   padding: 2rem;
-  max-width: 1400px;
+  max-width: 1800px;
   width: 100%;
   margin: 0 auto;
 }
@@ -489,9 +489,9 @@ body {
 /* Guests Grid - Desktop */
 .guests-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
-  margin-bottom: 1.5rem;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
 }
 
 .guests-grid .card {
@@ -514,18 +514,18 @@ body {
 }
 
 .guests-grid .guest-table-desktop {
-  font-size: 0.8rem;
+  font-size: 0.85rem;
 }
 
 .guests-grid .guest-table-desktop .table {
   width: 100%;
-  min-width: 500px;
+  min-width: 0;
 }
 
 .guests-grid .guest-table-desktop .table th,
 .guests-grid .guest-table-desktop .table td {
-  padding: 0.5rem 0.35rem;
-  font-size: 0.8rem;
+  padding: 0.6rem 0.5rem;
+  font-size: 0.85rem;
 }
 
 .guests-grid .guest-table-desktop .table th {
@@ -535,7 +535,7 @@ body {
 
 .guests-grid .guest-table-desktop .table td:first-child {
   font-weight: 500;
-  max-width: 140px;
+  max-width: 200px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -983,6 +983,14 @@ body {
     gap: 0.75rem;
     margin-bottom: 0.75rem;
   }
+}
+
+/* Tablet: 2 columnas */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .guests-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
 
   /* Mostrar cards en móvil, ocultar tabla */
   .guest-table-desktop {
@@ -1159,6 +1167,11 @@ body {
 @media (min-width: 769px) and (max-width: 1024px) {
   .app-main {
     padding: 1.5rem;
+  }
+
+  .guests-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
   }
 
   .summary-grid {

@@ -356,58 +356,57 @@ export const GuestManagement = ({ guests, baseGuestIds, onGuestsChange }: GuestM
         ) : null;
       })()}
 
-      <div className="guests-grid">
-        <div>
-          {showAddForm ? (
-            <div className="card" style={{ marginBottom: '1rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                <h3 style={{ margin: 0 }}>Añadir Nueva Familia</h3>
-                <button
-                  className="button button-secondary"
-                  onClick={() => setShowAddForm(false)}
-                >
-                  Cancelar
-                </button>
-              </div>
-              <GuestForm
-                guest={null}
-                onSave={handleAddNewFamily}
-                onCancel={() => setShowAddForm(false)}
-                maxAdults={availableSpots.adults}
-                maxChildren={availableSpots.children}
-              />
-            </div>
-          ) : null}
-          <GuestList
-            title="Invitados"
-            guests={invitedGuests}
-            highlightedGuestId={highlightedGuestId}
-            baseGuestIds={baseGuestIds}
-            onConfirm={(id) => {
-              const guest = guests.find((g) => g.id === id);
-              if (guest) handleConfirm(guest);
-            }}
-            onDecline={handleDecline}
-            onDelete={handleDelete}
-            showActions={true}
-            headerAction={
-              (availableSpots.adults > 0 || availableSpots.children > 0) ? (
-                <button
-                  className="button button-primary"
-                  onClick={() => setShowAddForm(true)}
-                  style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-                >
-                  <AddIcon style={{ fontSize: '1.2rem' }} /> Añadir Nueva Familia
-                  {(availableSpots.adults > 0 || availableSpots.children > 0) && (
-                    <span style={{ fontSize: '0.85rem', opacity: 0.9 }}>
-                      ({availableSpots.adults} adultos, {availableSpots.children} niños)
-                    </span>
-                  )}
-                </button>
-              ) : null
-            }
+      {showAddForm && (
+        <div className="card" style={{ marginBottom: '1.5rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <h3 style={{ margin: 0 }}>Añadir Nueva Familia</h3>
+            <button
+              className="button button-secondary"
+              onClick={() => setShowAddForm(false)}
+            >
+              Cancelar
+            </button>
+          </div>
+          <GuestForm
+            guest={null}
+            onSave={handleAddNewFamily}
+            onCancel={() => setShowAddForm(false)}
+            maxAdults={availableSpots.adults}
+            maxChildren={availableSpots.children}
           />
         </div>
+      )}
+
+      <div className="guests-grid">
+        <GuestList
+          title="Invitados"
+          guests={invitedGuests}
+          highlightedGuestId={highlightedGuestId}
+          baseGuestIds={baseGuestIds}
+          onConfirm={(id) => {
+            const guest = guests.find((g) => g.id === id);
+            if (guest) handleConfirm(guest);
+          }}
+          onDecline={handleDecline}
+          onDelete={handleDelete}
+          showActions={true}
+          headerAction={
+            (availableSpots.adults > 0 || availableSpots.children > 0) ? (
+              <button
+                className="button button-primary"
+                onClick={() => setShowAddForm(true)}
+                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+              >
+                <AddIcon style={{ fontSize: '1.2rem' }} /> Añadir Nueva Familia
+                {(availableSpots.adults > 0 || availableSpots.children > 0) && (
+                  <span style={{ fontSize: '0.85rem', opacity: 0.9 }}>
+                    ({availableSpots.adults} adultos, {availableSpots.children} niños)
+                  </span>
+                )}
+              </button>
+            ) : null
+          }
+        />
 
         <GuestList
           title="Confirmados"
@@ -423,15 +422,15 @@ export const GuestManagement = ({ guests, baseGuestIds, onGuestsChange }: GuestM
           onDelete={handleDelete}
           showActions={true}
         />
-      </div>
 
-      <GuestList
-        title="Declinados (Spots Disponibles)"
-        guests={declinedGuests}
-        highlightedGuestId={highlightedGuestId}
-        onReinvite={handleReinvite}
-        showActions={true}
-      />
+        <GuestList
+          title="Declinados (Spots Disponibles)"
+          guests={declinedGuests}
+          highlightedGuestId={highlightedGuestId}
+          onReinvite={handleReinvite}
+          showActions={true}
+        />
+      </div>
     </div>
   );
 };
