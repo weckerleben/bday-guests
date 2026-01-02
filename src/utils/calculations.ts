@@ -91,14 +91,6 @@ export const calculateSpots = (guests: Guest[]): SpotsInfo => {
     return sum;
   }, 0);
 
-  // Calcular spots disponibles: invitados totales - confirmados (usando cantidades confirmadas) - declinados
-  const invitedSpots = guests.reduce((sum, guest) => {
-    if (guest.status === 'invited') {
-      return sum + guest.adults + guest.children + guest.babies;
-    }
-    return sum;
-  }, 0);
-
   const partialDeclined = guests.reduce((sum, guest) => {
     if (guest.status === 'confirmed') {
       // Si hay confirmación parcial, los no confirmados son spots disponibles

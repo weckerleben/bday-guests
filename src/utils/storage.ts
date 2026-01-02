@@ -1,5 +1,5 @@
 import { Guest, GuestStatus, Pricing } from '../types';
-import { syncService, SyncData } from './sync';
+import { syncService } from './sync';
 
 const STORAGE_KEYS = {
   GUEST_STATUSES: 'bday-guest-statuses',
