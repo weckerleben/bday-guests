@@ -33,6 +33,9 @@ jobs:
         run: npm ci
 
       - name: Build
+        env:
+          VITE_JSONBIN_API_KEY: ${{ secrets.VITE_JSONBIN_API_KEY }}
+          VITE_JSONBIN_BIN_ID: ${{ secrets.VITE_JSONBIN_BIN_ID }}
         run: npm run build
 
       - name: Setup Pages

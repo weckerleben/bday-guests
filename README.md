@@ -40,6 +40,22 @@ VITE_JSONBIN_BIN_ID=tu_bin_id_aqui
 
 **Importante:** Ambos usuarios deben usar el mismo `VITE_JSONBIN_BIN_ID` para compartir los datos.
 
+### Configuración para GitHub Pages (Deploy)
+
+Para que las variables de entorno funcionen en el deploy de GitHub Pages, necesitas configurarlas como **Secrets** en GitHub:
+
+1. Ve a tu repositorio en GitHub
+2. Click en **Settings** → **Secrets and variables** → **Actions**
+3. Click en **New repository secret**
+4. Crea dos secrets:
+   - **Name:** `VITE_JSONBIN_API_KEY` → **Secret:** tu API key
+   - **Name:** `VITE_JSONBIN_BIN_ID` → **Secret:** tu Bin ID
+5. Guarda ambos secrets
+
+El workflow de GitHub Actions usará automáticamente estos secrets durante el build.
+
+**⚠️ Nota de Seguridad:** Las variables `VITE_*` se inyectan en el código del cliente durante el build, lo que significa que estarán visibles en el código fuente del navegador. Esto es normal para Vite, pero ten en cuenta que cualquiera puede ver estas variables en el código compilado. Si necesitas mayor seguridad, considera usar un backend proxy.
+
 ## Desarrollo
 
 ```bash
