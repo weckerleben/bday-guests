@@ -434,6 +434,16 @@ body {
   flex-shrink: 0;
 }
 
+.button-with-text {
+  gap: 0.5rem;
+}
+
+.button-text {
+  display: none;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
 /* Guest Cards - Mobile */
 .guest-cards-mobile {
   display: none;
@@ -990,6 +1000,14 @@ body {
   .guest-card-actions .button-icon svg {
     width: 18px;
     height: 18px;
+  }
+
+  .guest-card-actions .button-with-text {
+    gap: 0.4rem;
+  }
+
+  .guest-card-actions .button-text {
+    display: inline;
   }
 
   /* Mostrar cards de pricing en móvil, ocultar tabla */

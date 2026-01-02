@@ -288,62 +288,68 @@ export const GuestList = ({
                 <div className="guest-card-actions">
                   {onConfirm && guest.status === 'invited' && (
                     <button
-                      className="button button-success button-small button-icon"
+                      className="button button-success button-small button-icon button-with-text"
                       onClick={() => onConfirm(guest.id)}
                       title="Confirmar"
                       aria-label="Confirmar invitación"
                     >
                       <CheckIcon />
+                      <span className="button-text">Confirmar</span>
                     </button>
                   )}
                   {onConfirm && guest.status === 'confirmed' && (
                     <button
-                      className="button button-primary button-small button-icon"
+                      className="button button-primary button-small button-icon button-with-text"
                       onClick={() => onConfirm(guest.id)}
                       title="Editar"
                       aria-label="Editar confirmación"
                     >
                       <EditIcon />
+                      <span className="button-text">Editar</span>
                     </button>
                   )}
                   {onDecline && (guest.status === 'invited' || guest.status === 'confirmed') && (
                     <button
-                      className="button button-danger button-small button-icon"
+                      className="button button-danger button-small button-icon button-with-text"
                       onClick={() => onDecline(guest.id)}
                       title="Declinar"
                       aria-label="Declinar invitación"
                     >
                       <CloseIcon />
+                      <span className="button-text">Declinar</span>
                     </button>
                   )}
                   {onCancelConfirmation && guest.status === 'confirmed' && (
                     <button
-                      className="button button-secondary button-small button-icon"
+                      className="button button-secondary button-small button-icon button-with-text"
                       onClick={() => onCancelConfirmation(guest.id)}
                       title="Cancelar confirmación"
                       aria-label="Cancelar confirmación"
                     >
                       <UndoIcon />
+                      <span className="button-text">Cancelar</span>
                     </button>
                   )}
                   {onReinvite && guest.status === 'declined' && (
                     <button
-                      className="button button-success button-small button-icon"
+                      className="button button-success button-small button-icon button-with-text"
                       onClick={() => onReinvite(guest.id)}
                       title="Reinvitar"
                       aria-label="Reinvitar"
                     >
                       <CheckIcon />
+                      <span className="button-text">Reinvitar</span>
                     </button>
                   )}
                   {onDelete && baseGuestIds && !baseGuestIds.has(guest.id) && (
                     <button
-                      className="button button-danger button-small button-icon"
+                      className="button button-danger button-small button-icon button-with-text"
                       onClick={() => onDelete(guest.id)}
                       title="Eliminar"
                       aria-label="Eliminar invitado"
                     >
                       <DeleteIcon />
+                      <span className="button-text">Eliminar</span>
                     </button>
                   )}
                 </div>
