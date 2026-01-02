@@ -36,6 +36,15 @@ body {
   gap: 1rem;
 }
 
+/* Mobile Menu Drawer - Hidden by default, only visible on mobile */
+.mobile-menu-overlay {
+  display: none !important;
+}
+
+.mobile-menu-drawer {
+  display: none !important;
+}
+
 .mobile-menu-button {
   display: none;
   background: rgba(255, 255, 255, 0.2);
@@ -765,11 +774,7 @@ body {
     margin-bottom: 0;
   }
 
-  .app-main {
-    padding: 0.75rem;
-  }
-
-  /* Mobile Menu Drawer */
+  /* Mobile Menu Drawer - Show on mobile */
   .mobile-menu-overlay {
     position: fixed;
     top: 0;
@@ -788,7 +793,12 @@ body {
     visibility: visible;
   }
 
+  .mobile-menu-overlay {
+    display: block !important;
+  }
+
   .mobile-menu-drawer {
+    display: flex !important;
     position: fixed;
     top: 0;
     left: 0;
@@ -801,12 +811,15 @@ body {
     transform: translateX(-100%);
     transition: transform 0.3s ease;
     box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
-    display: flex;
     flex-direction: column;
   }
 
   .mobile-menu-drawer.open {
     transform: translateX(0);
+  }
+
+  .app-main {
+    padding: 0.75rem;
   }
 
   .mobile-menu-header {
