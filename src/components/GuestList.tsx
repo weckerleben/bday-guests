@@ -121,25 +121,25 @@ export const GuestList = ({
                   <td>
                     {displayAdults}
                     {isPartial && displayAdults < guest.adults && (
-                      <span style={{ color: '#6b7280', fontSize: '0.85rem' }}> / {guest.adults}</span>
+                      <span style={{ color: '#6b7280', fontSize: '0.75rem' }}> / {guest.adults}</span>
                     )}
                   </td>
                   <td>
                     {displayChildren}
                     {isPartial && displayChildren < guest.children && (
-                      <span style={{ color: '#6b7280', fontSize: '0.85rem' }}> / {guest.children}</span>
+                      <span style={{ color: '#6b7280', fontSize: '0.75rem' }}> / {guest.children}</span>
                     )}
                   </td>
                   <td>
                     {displayBabies}
                     {isPartial && displayBabies < guest.babies && (
-                      <span style={{ color: '#6b7280', fontSize: '0.85rem' }}> / {guest.babies}</span>
+                      <span style={{ color: '#6b7280', fontSize: '0.75rem' }}> / {guest.babies}</span>
                     )}
                   </td>
                   <td>
                     {displayTotal}
                     {isPartial && displayTotal < total && (
-                      <span style={{ color: '#6b7280', fontSize: '0.85rem' }}> / {total}</span>
+                      <span style={{ color: '#6b7280', fontSize: '0.75rem' }}> / {total}</span>
                     )}
                   </td>
                   {showActions && (
@@ -252,7 +252,7 @@ export const GuestList = ({
                   <span className="guest-card-value">
                     {displayAdults}
                     {isPartial && displayAdults < guest.adults && (
-                      <span style={{ color: '#6b7280', fontSize: '0.85rem' }}> / {guest.adults}</span>
+                      <span style={{ color: '#6b7280', fontSize: '0.75rem' }}> / {guest.adults}</span>
                     )}
                   </span>
                 </div>
@@ -261,7 +261,7 @@ export const GuestList = ({
                   <span className="guest-card-value">
                     {displayChildren}
                     {isPartial && displayChildren < guest.children && (
-                      <span style={{ color: '#6b7280', fontSize: '0.85rem' }}> / {guest.children}</span>
+                      <span style={{ color: '#6b7280', fontSize: '0.75rem' }}> / {guest.children}</span>
                     )}
                   </span>
                 </div>
@@ -270,16 +270,16 @@ export const GuestList = ({
                   <span className="guest-card-value">
                     {displayBabies}
                     {isPartial && displayBabies < guest.babies && (
-                      <span style={{ color: '#6b7280', fontSize: '0.85rem' }}> / {guest.babies}</span>
+                      <span style={{ color: '#6b7280', fontSize: '0.75rem' }}> / {guest.babies}</span>
                     )}
                   </span>
                 </div>
-                <div className="guest-card-row" style={{ fontWeight: 'bold', marginTop: '0.5rem', paddingTop: '0.5rem', borderTop: '1px solid #e5e7eb' }}>
+                <div className="guest-card-row" style={{ fontWeight: 'bold', marginTop: '0.35rem', paddingTop: '0.35rem', borderTop: '1px solid #e5e7eb', fontSize: '0.9rem' }}>
                   <span className="guest-card-label">Total:</span>
                   <span className="guest-card-value">
                     {displayTotal}
                     {isPartial && displayTotal < total && (
-                      <span style={{ color: '#6b7280', fontSize: '0.85rem' }}> / {total}</span>
+                      <span style={{ color: '#6b7280', fontSize: '0.8rem' }}> / {total}</span>
                     )}
                   </span>
                 </div>

@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import CakeIcon from '@mui/icons-material/Cake';
 import SyncIcon from '@mui/icons-material/Sync';
+import MenuIcon from '@mui/icons-material/Menu';
+import CloseIcon from '@mui/icons-material/Close';
 import { Guest, Pricing, GuestStatus } from './types';
 import { storage } from './utils/storage';
 import { syncService } from './utils/sync';
@@ -28,6 +30,7 @@ function App() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [syncError, setSyncError] = useState<string | null>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     // Sincronizar desde la nube al cargar la página si está configurado
@@ -120,26 +123,41 @@ function App() {
     });
   };
 
+  const handleTabChange = (tab: 'guests' | 'pricing' | 'summary' | 'sync') => {
+    setActiveTab(tab);
+    localStorage.setItem(ACTIVE_TAB_KEY, tab);
+    setIsMobileMenuOpen(false); // Cerrar menú al cambiar de tab
+  };
+
   return (
     <div className="app">
       <header className="app-header">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', flexWrap: 'wrap', gap: '1rem' }}>
-          <h1 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
-            <CakeIcon /> Gestión de Invitados - Cumpleaños
-          </h1>
+        <div className="header-top" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', flexWrap: 'wrap', gap: '1rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1, minWidth: 0 }}>
+            <button
+              className="mobile-menu-button"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              aria-label="Abrir menú"
+              aria-expanded={isMobileMenuOpen}
+            >
+              {isMobileMenuOpen ? <CloseIcon /> : <MenuIcon />}
+            </button>
+            <h1 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
+              <CakeIcon />
+              <span className="title-desktop">Gestión de Invitados - Cumpleaños</span>
+              <span className="title-mobile">Gestión de Cumpleaños</span>
+            </h1>
+          </div>
           <SyncStatusIndicator />
         </div>
-        <nav className="tabs" role="tablist" aria-label="Navegación principal" style={{ marginTop: '1rem' }}>
+        <nav className="tabs tabs-desktop" role="tablist" aria-label="Navegación principal" style={{ marginTop: '1rem' }}>
           <button
             role="tab"
             aria-selected={activeTab === 'guests'}
             aria-controls="guests-panel"
             id="guests-tab"
             className={activeTab === 'guests' ? 'active' : ''}
-            onClick={() => {
-              setActiveTab('guests');
-              localStorage.setItem(ACTIVE_TAB_KEY, 'guests');
-            }}
+            onClick={() => handleTabChange('guests')}
           >
             Invitados
           </button>
@@ -149,10 +167,7 @@ function App() {
             aria-controls="pricing-panel"
             id="pricing-tab"
             className={activeTab === 'pricing' ? 'active' : ''}
-            onClick={() => {
-              setActiveTab('pricing');
-              localStorage.setItem(ACTIVE_TAB_KEY, 'pricing');
-            }}
+            onClick={() => handleTabChange('pricing')}
           >
             Precios
           </button>
@@ -162,10 +177,7 @@ function App() {
             aria-controls="summary-panel"
             id="summary-tab"
             className={activeTab === 'summary' ? 'active' : ''}
-            onClick={() => {
-              setActiveTab('summary');
-              localStorage.setItem(ACTIVE_TAB_KEY, 'summary');
-            }}
+            onClick={() => handleTabChange('summary')}
           >
             Resumen
           </button>
@@ -175,15 +187,62 @@ function App() {
             aria-controls="sync-panel"
             id="sync-tab"
             className={activeTab === 'sync' ? 'active' : ''}
-            onClick={() => {
-              setActiveTab('sync');
-              localStorage.setItem(ACTIVE_TAB_KEY, 'sync');
-            }}
+            onClick={() => handleTabChange('sync')}
           >
             <SyncIcon style={{ fontSize: '1rem', marginRight: '0.25rem' }} /> Sincronizar
           </button>
         </nav>
       </header>
+
+      {/* Mobile Menu Drawer */}
+      <div 
+        className={`mobile-menu-overlay ${isMobileMenuOpen ? 'open' : ''}`}
+        onClick={() => setIsMobileMenuOpen(false)}
+        aria-hidden={!isMobileMenuOpen}
+      />
+      <nav 
+        className={`mobile-menu-drawer ${isMobileMenuOpen ? 'open' : ''}`}
+        role="navigation"
+        aria-label="Menú de navegación móvil"
+      >
+        <div className="mobile-menu-header">
+          <h2>Menú</h2>
+        </div>
+        <div className="mobile-menu-tabs">
+          <button
+            role="tab"
+            aria-selected={activeTab === 'guests'}
+            className={activeTab === 'guests' ? 'active' : ''}
+            onClick={() => handleTabChange('guests')}
+          >
+            Invitados
+          </button>
+          <button
+            role="tab"
+            aria-selected={activeTab === 'pricing'}
+            className={activeTab === 'pricing' ? 'active' : ''}
+            onClick={() => handleTabChange('pricing')}
+          >
+            Precios
+          </button>
+          <button
+            role="tab"
+            aria-selected={activeTab === 'summary'}
+            className={activeTab === 'summary' ? 'active' : ''}
+            onClick={() => handleTabChange('summary')}
+          >
+            Resumen
+          </button>
+          <button
+            role="tab"
+            aria-selected={activeTab === 'sync'}
+            className={activeTab === 'sync' ? 'active' : ''}
+            onClick={() => handleTabChange('sync')}
+          >
+            <SyncIcon style={{ fontSize: '1rem', marginRight: '0.25rem' }} /> Sincronizar
+          </button>
+        </div>
+      </nav>
 
       {syncError && (
         <Toast
