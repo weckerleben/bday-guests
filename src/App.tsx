@@ -85,7 +85,8 @@ function App() {
       .filter(g => !baseGuestIds.has(g.id))
       .map(({ status, confirmedAdults, confirmedChildren, confirmedBabies, ...rest }) => rest);
     
-    // Extraer solo los estados de los invitados
+    // Extraer solo los estados de los invitados que todavía existen
+    // Si un invitado fue eliminado, no estará en newGuests, así que su estado tampoco estará aquí
     const statuses: GuestStatus[] = newGuests.map((guest) => ({
       id: guest.id,
       status: guest.status,
@@ -94,14 +95,10 @@ function App() {
       confirmedBabies: guest.confirmedBabies,
     }));
     
-    // Guardar y actualizar UI inmediatamente (la sincronización es en segundo plano)
-    storage.saveGuestStatuses(statuses, (error) => {
-      if (error) {
-        setSyncError(`Error al sincronizar: ${error}`);
-        setTimeout(() => setSyncError(null), 5000);
-      }
-    });
-    storage.saveAdditionalGuests(additionalGuests, (error) => {
+    // Guardar y sincronizar todo junto (evita condiciones de carrera)
+    // Nota: statuses solo contiene los invitados que todavía existen, así que los eliminados
+    // se quitarán automáticamente del bin cuando se sincronice
+    storage.syncAll(statuses, additionalGuests, (error) => {
       if (error) {
         setSyncError(`Error al sincronizar: ${error}`);
         setTimeout(() => setSyncError(null), 5000);

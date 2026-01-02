@@ -27,11 +27,12 @@ export const storage = {
       // Fire-and-forget: no esperamos a que termine
       (async () => {
         try {
+          // Leer datos más recientes de localStorage (pueden haber sido actualizados por otras funciones)
           const pricing = storage.getPricing();
           const additionalGuests = storage.getAdditionalGuests();
           const result = await syncService.save({
-            guestStatuses: statuses,
-            additionalGuests,
+            guestStatuses: statuses, // Usar los statuses pasados como parámetro (más recientes)
+            additionalGuests, // Leer de localStorage (puede estar desactualizado si se llamó saveAdditionalGuests después)
             pricing,
             lastUpdated: Date.now(),
           });
@@ -141,11 +142,12 @@ export const storage = {
       window.dispatchEvent(new Event('sync-start'));
       (async () => {
         try {
+          // Leer datos más recientes de localStorage (pueden haber sido actualizados por otras funciones)
           const guestStatuses = storage.getGuestStatuses();
           const pricing = storage.getPricing();
           const result = await syncService.save({
-            guestStatuses,
-            additionalGuests,
+            guestStatuses, // Leer de localStorage (puede estar desactualizado si se llamó saveGuestStatuses después)
+            additionalGuests, // Usar los additionalGuests pasados como parámetro (más recientes)
             pricing,
             lastUpdated: Date.now(),
           });
@@ -161,6 +163,51 @@ export const storage = {
           }
         } catch (error) {
           console.error('Error syncing additional guests:', error);
+          window.dispatchEvent(new Event('sync-error'));
+          if (onError) {
+            onError(error instanceof Error ? error.message : 'Error desconocido');
+          }
+        } finally {
+          syncInProgress = false;
+        }
+      })();
+    }
+  },
+
+  syncAll: async (
+    statuses: GuestStatus[], 
+    additionalGuests: BaseGuest[], 
+    onError?: (error: string) => void
+  ): Promise<void> => {
+    // Guardar en localStorage inmediatamente
+    localStorage.setItem(STORAGE_KEYS.GUEST_STATUSES, JSON.stringify(statuses));
+    localStorage.setItem(STORAGE_KEYS.ADDITIONAL_GUESTS, JSON.stringify(additionalGuests));
+    
+    // Sincronizar con la nube en segundo plano (no bloquea la UI)
+    if (syncService.isConfigured() && !syncInProgress) {
+      syncInProgress = true;
+      window.dispatchEvent(new Event('sync-start'));
+      (async () => {
+        try {
+          const pricing = storage.getPricing();
+          const result = await syncService.save({
+            guestStatuses: statuses,
+            additionalGuests,
+            pricing,
+            lastUpdated: Date.now(),
+          });
+          if (result.success) {
+            localStorage.setItem(STORAGE_KEYS.LAST_SYNC, Date.now().toString());
+            window.dispatchEvent(new Event('sync-success'));
+          } else {
+            console.error('Error syncing all data:', result.error);
+            window.dispatchEvent(new Event('sync-error'));
+            if (onError && result.error) {
+              onError(result.error);
+            }
+          }
+        } catch (error) {
+          console.error('Error syncing all data:', error);
           window.dispatchEvent(new Event('sync-error'));
           if (onError) {
             onError(error instanceof Error ? error.message : 'Error desconocido');
