@@ -15,7 +15,7 @@ export const storage = {
     return data ? JSON.parse(data) : [];
   },
 
-  saveGuestStatuses: async (statuses: GuestStatus[]): Promise<void> => {
+  saveGuestStatuses: async (statuses: GuestStatus[], onError?: (error: string) => void): Promise<void> => {
     // Guardar en localStorage inmediatamente
     localStorage.setItem(STORAGE_KEYS.GUEST_STATUSES, JSON.stringify(statuses));
     
@@ -35,9 +35,15 @@ export const storage = {
             localStorage.setItem(STORAGE_KEYS.LAST_SYNC, Date.now().toString());
           } else {
             console.error('Error syncing guest statuses:', result.error);
+            if (onError && result.error) {
+              onError(result.error);
+            }
           }
         } catch (error) {
           console.error('Error syncing guest statuses:', error);
+          if (onError) {
+            onError(error instanceof Error ? error.message : 'Error desconocido');
+          }
         } finally {
           syncInProgress = false;
         }
@@ -71,7 +77,7 @@ export const storage = {
     return parsed;
   },
 
-  savePricing: async (pricing: Pricing): Promise<void> => {
+  savePricing: async (pricing: Pricing, onError?: (error: string) => void): Promise<void> => {
     // Guardar en localStorage inmediatamente
     localStorage.setItem(STORAGE_KEYS.PRICING, JSON.stringify(pricing));
     
@@ -91,14 +97,31 @@ export const storage = {
             localStorage.setItem(STORAGE_KEYS.LAST_SYNC, Date.now().toString());
           } else {
             console.error('Error syncing pricing:', result.error);
+            if (onError && result.error) {
+              onError(result.error);
+            }
           }
         } catch (error) {
           console.error('Error syncing pricing:', error);
+          if (onError) {
+            onError(error instanceof Error ? error.message : 'Error desconocido');
+          }
         } finally {
           syncInProgress = false;
         }
       })();
     }
+  },
+
+  exportData: (): string => {
+    const guestStatuses = storage.getGuestStatuses();
+    const pricing = storage.getPricing();
+    const data = {
+      guestStatuses,
+      pricing,
+      exportedAt: new Date().toISOString(),
+    };
+    return JSON.stringify(data, null, 2);
   },
 
   async syncFromCloud(forceUpdate: boolean = false): Promise<{ success: boolean; error?: string }> {

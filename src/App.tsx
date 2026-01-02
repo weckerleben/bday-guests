@@ -9,15 +9,22 @@ import { GuestManagement } from './components/GuestManagement';
 import { SummaryView } from './components/SummaryView';
 import { SyncConfig } from './components/SyncConfig';
 import { SkeletonLoader } from './components/SkeletonLoader';
+import { Toast } from './components/Toast';
 import './App.css';
+
+const ACTIVE_TAB_KEY = 'bday-active-tab';
 
 function App() {
   const [baseGuests] = useState(() => loadBaseGuests());
   const [guests, setGuests] = useState<Guest[]>([]);
   const [pricing, setPricing] = useState<Pricing | null>(null);
-  const [activeTab, setActiveTab] = useState<'guests' | 'pricing' | 'summary' | 'sync'>('guests');
+  const [activeTab, setActiveTab] = useState<'guests' | 'pricing' | 'summary' | 'sync'>(() => {
+    const saved = localStorage.getItem(ACTIVE_TAB_KEY);
+    return (saved as 'guests' | 'pricing' | 'summary' | 'sync') || 'guests';
+  });
   const [refreshKey, setRefreshKey] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [syncError, setSyncError] = useState<string | null>(null);
 
   useEffect(() => {
     // Sincronizar desde la nube al cargar la página si está configurado
@@ -72,7 +79,12 @@ function App() {
     }));
     
     // Guardar y actualizar UI inmediatamente (la sincronización es en segundo plano)
-    storage.saveGuestStatuses(statuses);
+    storage.saveGuestStatuses(statuses, (error) => {
+      if (error) {
+        setSyncError(`Error al sincronizar: ${error}`);
+        setTimeout(() => setSyncError(null), 5000);
+      }
+    });
     // Actualizar la vista combinando base con estados
     const mergedGuests = mergeGuestsWithStatuses(baseGuests, statuses);
     setGuests(mergedGuests);
@@ -81,7 +93,12 @@ function App() {
   const handlePricingChange = async (newPricing: Pricing) => {
     setPricing(newPricing);
     // Guardar inmediatamente (la sincronización es en segundo plano)
-    storage.savePricing(newPricing);
+    storage.savePricing(newPricing, (error) => {
+      if (error) {
+        setSyncError(`Error al sincronizar: ${error}`);
+        setTimeout(() => setSyncError(null), 5000);
+      }
+    });
   };
 
   return (
@@ -95,7 +112,10 @@ function App() {
             aria-controls="guests-panel"
             id="guests-tab"
             className={activeTab === 'guests' ? 'active' : ''}
-            onClick={() => setActiveTab('guests')}
+            onClick={() => {
+              setActiveTab('guests');
+              localStorage.setItem(ACTIVE_TAB_KEY, 'guests');
+            }}
           >
             Invitados
           </button>
@@ -105,7 +125,10 @@ function App() {
             aria-controls="pricing-panel"
             id="pricing-tab"
             className={activeTab === 'pricing' ? 'active' : ''}
-            onClick={() => setActiveTab('pricing')}
+            onClick={() => {
+              setActiveTab('pricing');
+              localStorage.setItem(ACTIVE_TAB_KEY, 'pricing');
+            }}
           >
             Precios
           </button>
@@ -115,7 +138,10 @@ function App() {
             aria-controls="summary-panel"
             id="summary-tab"
             className={activeTab === 'summary' ? 'active' : ''}
-            onClick={() => setActiveTab('summary')}
+            onClick={() => {
+              setActiveTab('summary');
+              localStorage.setItem(ACTIVE_TAB_KEY, 'summary');
+            }}
           >
             Resumen
           </button>
@@ -125,13 +151,24 @@ function App() {
             aria-controls="sync-panel"
             id="sync-tab"
             className={activeTab === 'sync' ? 'active' : ''}
-            onClick={() => setActiveTab('sync')}
+            onClick={() => {
+              setActiveTab('sync');
+              localStorage.setItem(ACTIVE_TAB_KEY, 'sync');
+            }}
           >
             🔄 Sincronizar
           </button>
         </nav>
       </header>
 
+      {syncError && (
+        <Toast
+          message={syncError}
+          type="error"
+          onClose={() => setSyncError(null)}
+          duration={5000}
+        />
+      )}
       <main className="app-main">
         {isLoading ? (
           <div>

@@ -166,6 +166,31 @@ VITE_JSONBIN_BIN_ID=tu_bin_id_aqui`}
           {syncStatus}
         </p>
       )}
+      
+      <div style={{ marginTop: '2rem', paddingTop: '1.5rem', borderTop: '1px solid #e5e7eb' }}>
+        <h3 style={{ fontSize: '1.1rem', marginBottom: '0.75rem' }}>💾 Backup de Datos</h3>
+        <p style={{ fontSize: '0.9rem', color: '#6b7280', marginBottom: '1rem' }}>
+          Exporta todos tus datos (estados de invitados y precios) como archivo JSON para hacer un respaldo.
+        </p>
+        <button
+          className="button"
+          onClick={() => {
+            const data = storage.exportData();
+            const blob = new Blob([data], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `bday-guests-backup-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+          }}
+          style={{ width: '100%' }}
+        >
+          📥 Exportar Datos (JSON)
+        </button>
+      </div>
     </div>
   );
 };
