@@ -1,8 +1,9 @@
-import { Guest, GuestStatus, Pricing } from '../types';
+import { BaseGuest, Guest, GuestStatus, Pricing } from '../types';
 import { syncService } from './sync';
 
 const STORAGE_KEYS = {
   GUEST_STATUSES: 'bday-guest-statuses',
+  ADDITIONAL_GUESTS: 'bday-additional-guests', // Familias añadidas dinámicamente
   PRICING: 'bday-pricing',
   LAST_SYNC: 'bday-last-sync',
 } as const;
@@ -22,25 +23,31 @@ export const storage = {
     // Sincronizar con la nube en segundo plano (no bloquea la UI)
     if (syncService.isConfigured() && !syncInProgress) {
       syncInProgress = true;
+      window.dispatchEvent(new Event('sync-start'));
       // Fire-and-forget: no esperamos a que termine
       (async () => {
         try {
           const pricing = storage.getPricing();
+          const additionalGuests = storage.getAdditionalGuests();
           const result = await syncService.save({
             guestStatuses: statuses,
+            additionalGuests,
             pricing,
             lastUpdated: Date.now(),
           });
           if (result.success) {
             localStorage.setItem(STORAGE_KEYS.LAST_SYNC, Date.now().toString());
+            window.dispatchEvent(new Event('sync-success'));
           } else {
             console.error('Error syncing guest statuses:', result.error);
+            window.dispatchEvent(new Event('sync-error'));
             if (onError && result.error) {
               onError(result.error);
             }
           }
         } catch (error) {
           console.error('Error syncing guest statuses:', error);
+          window.dispatchEvent(new Event('sync-error'));
           if (onError) {
             onError(error instanceof Error ? error.message : 'Error desconocido');
           }
@@ -84,25 +91,77 @@ export const storage = {
     // Sincronizar con la nube en segundo plano (no bloquea la UI)
     if (syncService.isConfigured() && !syncInProgress) {
       syncInProgress = true;
+      window.dispatchEvent(new Event('sync-start'));
       // Fire-and-forget: no esperamos a que termine
       (async () => {
         try {
           const guestStatuses = storage.getGuestStatuses();
+          const additionalGuests = storage.getAdditionalGuests();
           const result = await syncService.save({
             guestStatuses,
+            additionalGuests,
             pricing,
             lastUpdated: Date.now(),
           });
           if (result.success) {
             localStorage.setItem(STORAGE_KEYS.LAST_SYNC, Date.now().toString());
+            window.dispatchEvent(new Event('sync-success'));
           } else {
             console.error('Error syncing pricing:', result.error);
+            window.dispatchEvent(new Event('sync-error'));
             if (onError && result.error) {
               onError(result.error);
             }
           }
         } catch (error) {
           console.error('Error syncing pricing:', error);
+          window.dispatchEvent(new Event('sync-error'));
+          if (onError) {
+            onError(error instanceof Error ? error.message : 'Error desconocido');
+          }
+        } finally {
+          syncInProgress = false;
+        }
+      })();
+    }
+  },
+
+  getAdditionalGuests: (): BaseGuest[] => {
+    const data = localStorage.getItem(STORAGE_KEYS.ADDITIONAL_GUESTS);
+    return data ? JSON.parse(data) : [];
+  },
+
+  saveAdditionalGuests: async (additionalGuests: BaseGuest[], onError?: (error: string) => void): Promise<void> => {
+    // Guardar en localStorage inmediatamente
+    localStorage.setItem(STORAGE_KEYS.ADDITIONAL_GUESTS, JSON.stringify(additionalGuests));
+    
+    // Sincronizar con la nube en segundo plano (no bloquea la UI)
+    if (syncService.isConfigured() && !syncInProgress) {
+      syncInProgress = true;
+      window.dispatchEvent(new Event('sync-start'));
+      (async () => {
+        try {
+          const guestStatuses = storage.getGuestStatuses();
+          const pricing = storage.getPricing();
+          const result = await syncService.save({
+            guestStatuses,
+            additionalGuests,
+            pricing,
+            lastUpdated: Date.now(),
+          });
+          if (result.success) {
+            localStorage.setItem(STORAGE_KEYS.LAST_SYNC, Date.now().toString());
+            window.dispatchEvent(new Event('sync-success'));
+          } else {
+            console.error('Error syncing additional guests:', result.error);
+            window.dispatchEvent(new Event('sync-error'));
+            if (onError && result.error) {
+              onError(result.error);
+            }
+          }
+        } catch (error) {
+          console.error('Error syncing additional guests:', error);
+          window.dispatchEvent(new Event('sync-error'));
           if (onError) {
             onError(error instanceof Error ? error.message : 'Error desconocido');
           }
@@ -115,9 +174,11 @@ export const storage = {
 
   exportData: (): string => {
     const guestStatuses = storage.getGuestStatuses();
+    const additionalGuests = storage.getAdditionalGuests();
     const pricing = storage.getPricing();
     const data = {
       guestStatuses,
+      additionalGuests,
       pricing,
       exportedAt: new Date().toISOString(),
     };
@@ -155,10 +216,14 @@ export const storage = {
           } else if (result.data.guestStatuses) {
             localStorage.setItem(STORAGE_KEYS.GUEST_STATUSES, JSON.stringify(result.data.guestStatuses));
           }
+          if (result.data.additionalGuests) {
+            localStorage.setItem(STORAGE_KEYS.ADDITIONAL_GUESTS, JSON.stringify(result.data.additionalGuests));
+          }
           if (result.data.pricing) {
             localStorage.setItem(STORAGE_KEYS.PRICING, JSON.stringify(result.data.pricing));
           }
           localStorage.setItem(STORAGE_KEYS.LAST_SYNC, result.data.lastUpdated.toString());
+          window.dispatchEvent(new Event('sync-success'));
           return { success: true };
         }
       }
@@ -179,14 +244,19 @@ export const storage = {
 
     try {
       const guestStatuses = storage.getGuestStatuses();
+      const additionalGuests = storage.getAdditionalGuests();
       const pricing = storage.getPricing();
       const result = await syncService.save({
         guestStatuses,
+        additionalGuests,
         pricing,
         lastUpdated: Date.now(),
       });
       if (result.success) {
         localStorage.setItem(STORAGE_KEYS.LAST_SYNC, Date.now().toString());
+        window.dispatchEvent(new Event('sync-success'));
+      } else {
+        window.dispatchEvent(new Event('sync-error'));
       }
       return result;
     } catch (error) {

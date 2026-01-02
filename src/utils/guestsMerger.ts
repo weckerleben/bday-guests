@@ -2,6 +2,7 @@ import { BaseGuest, Guest, GuestStatus } from '../types';
 
 export const mergeGuestsWithStatuses = (
   baseGuests: BaseGuest[],
+  additionalGuests: BaseGuest[],
   statuses: GuestStatus[]
 ): Guest[] => {
   const statusMap = new Map<string, GuestStatus>();
@@ -9,7 +10,10 @@ export const mergeGuestsWithStatuses = (
     statusMap.set(status.id, status);
   });
 
-  return baseGuests.map((baseGuest) => {
+  // Combinar baseGuests y additionalGuests
+  const allGuests = [...baseGuests, ...additionalGuests];
+
+  return allGuests.map((baseGuest) => {
     const status = statusMap.get(baseGuest.id);
     if (status) {
       return {

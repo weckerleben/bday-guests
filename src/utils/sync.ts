@@ -1,5 +1,6 @@
 export interface SyncData {
   guestStatuses?: unknown[];
+  additionalGuests?: unknown[]; // Familias añadidas dinámicamente
   guests?: unknown[]; // Para compatibilidad con datos antiguos
   pricing: unknown | null;
   lastUpdated: number;

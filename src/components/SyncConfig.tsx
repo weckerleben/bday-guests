@@ -1,4 +1,11 @@
 import { useState, useEffect } from 'react';
+import SyncIcon from '@mui/icons-material/Sync';
+import WarningIcon from '@mui/icons-material/Warning';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CloseIcon from '@mui/icons-material/Close';
+import DownloadIcon from '@mui/icons-material/Download';
+import UploadIcon from '@mui/icons-material/Upload';
+import SaveIcon from '@mui/icons-material/Save';
 import { syncService } from '../utils/sync';
 import { storage } from '../utils/storage';
 
@@ -53,14 +60,17 @@ export const SyncConfig = ({ onSyncComplete }: SyncConfigProps) => {
   const handleSyncFromCloud = async () => {
     setIsSyncing(true);
     setSyncStatus('Sincronizando desde la nube...');
+    window.dispatchEvent(new Event('sync-start'));
 
     const result = await storage.syncFromCloud();
     if (result.success) {
       setSyncStatus('Datos sincronizados desde la nube');
       updateLastSyncTime();
+      window.dispatchEvent(new Event('sync-success'));
       onSyncComplete();
     } else {
       setSyncStatus(result.error || 'Error al sincronizar desde la nube');
+      window.dispatchEvent(new Event('sync-error'));
     }
 
     setIsSyncing(false);
@@ -69,13 +79,16 @@ export const SyncConfig = ({ onSyncComplete }: SyncConfigProps) => {
   const handleSyncToCloud = async () => {
     setIsSyncing(true);
     setSyncStatus('Sincronizando a la nube...');
+    window.dispatchEvent(new Event('sync-start'));
 
     const result = await storage.syncToCloud();
     if (result.success) {
       setSyncStatus('Datos sincronizados a la nube');
       updateLastSyncTime();
+      window.dispatchEvent(new Event('sync-success'));
     } else {
       setSyncStatus(result.error || 'Error al sincronizar a la nube');
+      window.dispatchEvent(new Event('sync-error'));
     }
 
     setIsSyncing(false);
@@ -87,10 +100,12 @@ export const SyncConfig = ({ onSyncComplete }: SyncConfigProps) => {
     
     return (
       <div className="card">
-        <h2>🔄 Sincronización en la Nube</h2>
+        <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <SyncIcon /> Sincronización en la Nube
+        </h2>
         <div style={{ padding: '1rem', background: '#fef3c7', borderRadius: '6px', borderLeft: '4px solid #f59e0b' }}>
-          <p style={{ color: '#92400e', fontWeight: '500', marginBottom: '0.5rem' }}>
-            ⚠️ Sincronización no configurada
+          <p style={{ color: '#92400e', fontWeight: '500', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <WarningIcon /> Sincronización no configurada
           </p>
           <p style={{ color: '#78350f', fontSize: '0.9rem' }}>
             Para habilitar la sincronización, configura las variables de entorno en el archivo <code>.env</code>:
@@ -108,11 +123,27 @@ VITE_JSONBIN_BIN_ID=tu_bin_id_aqui`}
           </pre>
           <div style={{ marginTop: '0.75rem', padding: '0.75rem', background: '#fff', borderRadius: '4px', fontSize: '0.85rem' }}>
             <p style={{ color: '#78350f', fontWeight: '500', marginBottom: '0.5rem' }}>Estado actual:</p>
-            <p style={{ color: '#78350f', margin: '0.25rem 0' }}>
-              API Key: {apiKey ? `✓ Detectada (${apiKey.length} caracteres)` : '✗ No detectada'}
+            <p style={{ color: '#78350f', margin: '0.25rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              API Key: {apiKey ? (
+                <>
+                  <CheckCircleIcon style={{ fontSize: '1rem' }} /> Detectada ({apiKey.length} caracteres)
+                </>
+              ) : (
+                <>
+                  <CloseIcon style={{ fontSize: '1rem' }} /> No detectada
+                </>
+              )}
             </p>
-            <p style={{ color: '#78350f', margin: '0.25rem 0' }}>
-              Bin ID: {binId ? `✓ Detectado (${binId.length} caracteres)` : '✗ No detectado'}
+            <p style={{ color: '#78350f', margin: '0.25rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              Bin ID: {binId ? (
+                <>
+                  <CheckCircleIcon style={{ fontSize: '1rem' }} /> Detectado ({binId.length} caracteres)
+                </>
+              ) : (
+                <>
+                  <CloseIcon style={{ fontSize: '1rem' }} /> No detectado
+                </>
+              )}
             </p>
           </div>
           <p style={{ color: '#78350f', fontSize: '0.85rem', marginTop: '0.75rem' }}>
@@ -128,10 +159,12 @@ VITE_JSONBIN_BIN_ID=tu_bin_id_aqui`}
 
   return (
     <div className="card">
-      <h2>🔄 Sincronización en la Nube</h2>
+      <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <SyncIcon /> Sincronización en la Nube
+      </h2>
       <div style={{ marginBottom: '1rem' }}>
-        <p style={{ color: '#10b981', fontWeight: '500' }}>
-          ✓ Sincronización configurada
+        <p style={{ color: '#10b981', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <CheckCircleIcon /> Sincronización configurada
         </p>
         <p style={{ fontSize: '0.9rem', color: '#6b7280', marginTop: '0.5rem' }}>
           Bin ID: <code style={{ background: '#f3f4f6', padding: '0.2rem 0.4rem', borderRadius: '3px' }}>{syncService.getBinId()}</code>
@@ -150,15 +183,33 @@ VITE_JSONBIN_BIN_ID=tu_bin_id_aqui`}
           className="button button-primary"
           onClick={handleSyncFromCloud}
           disabled={isSyncing}
+          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}
         >
-          {isSyncing ? 'Sincronizando...' : '📥 Sincronizar desde la nube'}
+          {isSyncing ? (
+            <>
+              <SyncIcon style={{ fontSize: '1.2rem' }} /> Sincronizando...
+            </>
+          ) : (
+            <>
+              <DownloadIcon style={{ fontSize: '1.2rem' }} /> Sincronizar desde la nube
+            </>
+          )}
         </button>
         <button
           className="button button-success"
           onClick={handleSyncToCloud}
           disabled={isSyncing}
+          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}
         >
-          {isSyncing ? 'Sincronizando...' : '📤 Sincronizar a la nube'}
+          {isSyncing ? (
+            <>
+              <SyncIcon style={{ fontSize: '1.2rem' }} /> Sincronizando...
+            </>
+          ) : (
+            <>
+              <UploadIcon style={{ fontSize: '1.2rem' }} /> Sincronizar a la nube
+            </>
+          )}
         </button>
       </div>
       {syncStatus && (
@@ -168,7 +219,9 @@ VITE_JSONBIN_BIN_ID=tu_bin_id_aqui`}
       )}
       
       <div style={{ marginTop: '2rem', paddingTop: '1.5rem', borderTop: '1px solid #e5e7eb' }}>
-        <h3 style={{ fontSize: '1.1rem', marginBottom: '0.75rem' }}>💾 Backup de Datos</h3>
+        <h3 style={{ fontSize: '1.1rem', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <SaveIcon /> Backup de Datos
+        </h3>
         <p style={{ fontSize: '0.9rem', color: '#6b7280', marginBottom: '1rem' }}>
           Exporta todos tus datos (estados de invitados y precios) como archivo JSON para hacer un respaldo.
         </p>
@@ -186,9 +239,9 @@ VITE_JSONBIN_BIN_ID=tu_bin_id_aqui`}
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
           }}
-          style={{ width: '100%' }}
+          style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}
         >
-          📥 Exportar Datos (JSON)
+          <DownloadIcon style={{ fontSize: '1.2rem' }} /> Exportar Datos (JSON)
         </button>
       </div>
     </div>

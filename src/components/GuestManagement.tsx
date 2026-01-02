@@ -1,18 +1,23 @@
 import { useState, useEffect, useRef } from 'react';
-import { Guest } from '../types';
+import AddIcon from '@mui/icons-material/Add';
+import { Guest, BaseGuest } from '../types';
 import { GuestList } from './GuestList';
+import { GuestForm } from './GuestForm';
 import { ConfirmModal } from './ConfirmModal';
 import { ConfirmDialog } from './ConfirmDialog';
 import { Toast } from './Toast';
 
 interface GuestManagementProps {
   guests: Guest[];
+  baseGuestIds: Set<string>; // IDs de invitados base (no se pueden eliminar)
   onGuestsChange: (guests: Guest[]) => void;
 }
 
-export const GuestManagement = ({ guests, onGuestsChange }: GuestManagementProps) => {
+export const GuestManagement = ({ guests, baseGuestIds, onGuestsChange }: GuestManagementProps) => {
   const [confirmingGuest, setConfirmingGuest] = useState<Guest | null>(null);
   const [decliningGuestId, setDecliningGuestId] = useState<string | null>(null);
+  const [deletingGuestId, setDeletingGuestId] = useState<string | null>(null);
+  const [showAddForm, setShowAddForm] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
   const [highlightedGuestId, setHighlightedGuestId] = useState<string | null>(null);
   const highlightTimeoutRef = useRef<number | null>(null);
@@ -143,11 +148,107 @@ export const GuestManagement = ({ guests, onGuestsChange }: GuestManagementProps
     }
   };
 
+  const handleDelete = (id: string) => {
+    // Solo permitir eliminar invitados adicionales
+    if (baseGuestIds.has(id)) {
+      setToast({
+        message: 'No se pueden eliminar invitados base',
+        type: 'error'
+      });
+      return;
+    }
+    setDeletingGuestId(id);
+  };
+
+  const confirmDelete = async () => {
+    if (deletingGuestId) {
+      const guest = guests.find((g) => g.id === deletingGuestId);
+      
+      // Eliminar el invitado de la lista
+      const updatedGuests = guests.filter((g) => g.id !== deletingGuestId);
+      onGuestsChange(updatedGuests);
+      
+      setDeletingGuestId(null);
+      
+      if (guest) {
+        setToast({
+          message: `🗑️ ${guest.familyName} eliminado`,
+          type: 'info'
+        });
+      }
+    }
+  };
+
+  const handleAddNewFamily = (formData: Omit<BaseGuest, 'id'>) => {
+    // Calcular spots disponibles (solo adultos + niños, sin bebés)
+    const availableSpotsAdultsChildren = guests.reduce((sum, guest) => {
+      if (guest.status === 'declined') {
+        return sum + guest.adults + guest.children; // Solo adultos + niños
+      }
+      if (guest.status === 'confirmed') {
+        // Calcular spots no confirmados (solo adultos + niños)
+        const adults = guest.confirmedAdults !== undefined ? guest.confirmedAdults : guest.adults;
+        const children = guest.confirmedChildren !== undefined ? guest.confirmedChildren : guest.children;
+        return sum + (guest.adults - adults) + (guest.children - children);
+      }
+      return sum;
+    }, 0);
+    
+    // Validar que no exceda los spots disponibles (solo adultos + niños)
+    const requestedSpots = formData.adults + formData.children;
+    if (requestedSpots > availableSpotsAdultsChildren) {
+      setToast({
+        message: `✗ No hay suficientes spots disponibles. Disponibles: ${availableSpotsAdultsChildren}, Solicitados: ${requestedSpots}`,
+        type: 'error'
+      });
+      return;
+    }
+    
+    // Generar ID único para la nueva familia
+    const maxId = Math.max(
+      ...guests.map(g => parseInt(g.id) || 0),
+      0
+    );
+    const newId = (maxId + 1).toString();
+    
+    const newGuest: Guest = {
+      id: newId,
+      ...formData,
+      status: 'invited',
+    };
+    
+    // Añadir a la lista de invitados
+    const updatedGuests = [...guests, newGuest];
+    onGuestsChange(updatedGuests);
+    
+    setShowAddForm(false);
+    setHighlightedGuestId(newId);
+    
+    setToast({
+      message: `✓ ${formData.familyName} añadido como nuevo invitado`,
+      type: 'success'
+    });
+  };
+
   const invitedGuests = guests.filter((g) => g.status === 'invited');
   const confirmedGuests = guests.filter((g) => g.status === 'confirmed');
   const declinedGuests = guests.filter((g) => g.status === 'declined');
 
   const decliningGuest = decliningGuestId ? guests.find((g) => g.id === decliningGuestId) : null;
+  
+  // Calcular spots disponibles para adultos + niños (sin bebés)
+  const availableSpotsAdultsChildren = guests.reduce((sum, guest) => {
+    if (guest.status === 'declined') {
+      return sum + guest.adults + guest.children; // Solo adultos + niños
+    }
+    if (guest.status === 'confirmed') {
+      // Calcular spots no confirmados (solo adultos + niños)
+      const adults = guest.confirmedAdults !== undefined ? guest.confirmedAdults : guest.adults;
+      const children = guest.confirmedChildren !== undefined ? guest.confirmedChildren : guest.children;
+      return sum + (guest.adults - adults) + (guest.children - children);
+    }
+    return sum;
+  }, 0);
 
   return (
     <div>
@@ -179,29 +280,85 @@ export const GuestManagement = ({ guests, onGuestsChange }: GuestManagementProps
         />
       )}
 
+      {deletingGuestId && (() => {
+        const guest = guests.find((g) => g.id === deletingGuestId);
+        return guest ? (
+          <ConfirmDialog
+            title="Eliminar Invitado"
+            message={`¿Estás seguro de eliminar a ${guest.familyName}? Esta acción no se puede deshacer.`}
+            onConfirm={confirmDelete}
+            onCancel={() => setDeletingGuestId(null)}
+            confirmText="Sí, Eliminar"
+            cancelText="Cancelar"
+            variant="danger"
+          />
+        ) : null;
+      })()}
+
       <div className="guests-grid">
-        <GuestList
-          title="Invitados"
-          guests={invitedGuests}
-          highlightedGuestId={highlightedGuestId}
-          onConfirm={(id) => {
-            const guest = guests.find((g) => g.id === id);
-            if (guest) handleConfirm(guest);
-          }}
-          onDecline={handleDecline}
-          showActions={true}
-        />
+        <div>
+          {showAddForm ? (
+            <div className="card" style={{ marginBottom: '1rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                <h3 style={{ margin: 0 }}>Añadir Nueva Familia</h3>
+                <button
+                  className="button button-secondary"
+                  onClick={() => setShowAddForm(false)}
+                >
+                  Cancelar
+                </button>
+              </div>
+              <GuestForm
+                guest={null}
+                onSave={handleAddNewFamily}
+                onCancel={() => setShowAddForm(false)}
+                maxSpots={availableSpotsAdultsChildren}
+              />
+            </div>
+          ) : null}
+          <GuestList
+            title="Invitados"
+            guests={invitedGuests}
+            highlightedGuestId={highlightedGuestId}
+            baseGuestIds={baseGuestIds}
+            onConfirm={(id) => {
+              const guest = guests.find((g) => g.id === id);
+              if (guest) handleConfirm(guest);
+            }}
+            onDecline={handleDecline}
+            onDelete={handleDelete}
+            showActions={true}
+            headerAction={
+              availableSpotsAdultsChildren > 0 ? (
+                <button
+                  className="button button-primary"
+                  onClick={() => setShowAddForm(true)}
+                  style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                >
+                  <AddIcon style={{ fontSize: '1.2rem' }} /> Añadir Nueva Familia
+                  {availableSpotsAdultsChildren > 0 && (
+                    <span style={{ fontSize: '0.85rem', opacity: 0.9 }}>
+                      ({availableSpotsAdultsChildren} spots)
+                    </span>
+                  )}
+                </button>
+              ) : null
+            }
+          />
+        </div>
 
         <GuestList
           title="Confirmados"
           guests={confirmedGuests}
           highlightedGuestId={highlightedGuestId}
+          baseGuestIds={baseGuestIds}
           onConfirm={(id) => {
             const guest = guests.find((g) => g.id === id);
             if (guest) handleConfirm(guest);
           }}
           onCancelConfirmation={handleCancelConfirmation}
           onDecline={handleDecline}
+          onDelete={handleDelete}
           showActions={true}
         />
       </div>

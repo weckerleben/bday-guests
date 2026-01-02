@@ -1,51 +1,36 @@
 import { Guest } from '../types';
-
-// Íconos SVG inline
-const CheckIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M13.5 4L6 11.5L2.5 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-  </svg>
-);
-
-const XIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M4 4L12 12M12 4L4 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-  </svg>
-);
-
-const EditIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M11.5 2.5L13.5 4.5L5.5 12.5H3.5V10.5L11.5 2.5Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-  </svg>
-);
-
-const UndoIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M3 8C3 5.5 5 3.5 7.5 3.5C10 3.5 12 5.5 12 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-    <path d="M9 5L7.5 3.5L6 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-  </svg>
-);
+import CheckIcon from '@mui/icons-material/Check';
+import CloseIcon from '@mui/icons-material/Close';
+import EditIcon from '@mui/icons-material/Edit';
+import UndoIcon from '@mui/icons-material/Undo';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 interface GuestListProps {
   title: string;
   guests: Guest[];
   highlightedGuestId?: string | null;
+  baseGuestIds?: Set<string>; // IDs de invitados base (no se pueden eliminar)
   onConfirm?: (id: string) => void;
   onDecline?: (id: string) => void;
   onReinvite?: (id: string) => void;
   onCancelConfirmation?: (id: string) => void;
+  onDelete?: (id: string) => void;
   showActions: boolean;
+  headerAction?: React.ReactNode; // Contenido adicional para el header (ej: botones)
 }
 
 export const GuestList = ({
   title,
   guests,
   highlightedGuestId,
+  baseGuestIds,
   onConfirm,
   onDecline,
   onReinvite,
   onCancelConfirmation,
+  onDelete,
   showActions,
+  headerAction,
 }: GuestListProps) => {
   const isEmpty = guests.length === 0;
 
@@ -69,9 +54,18 @@ export const GuestList = ({
 
   return (
     <div className="card">
-      <h2>
-        {title} {!isEmpty && `(${guests.length} ${guests.length === 1 ? 'familia' : 'familias'} - ${totalGuests} ${totalGuests === 1 ? 'invitado' : 'invitados'})`}
-      </h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: title ? '1rem' : '0', flexWrap: 'wrap', gap: '0.75rem' }}>
+        {title && (
+          <h2 style={{ flex: '1 1 auto', margin: 0 }}>
+            {title} {!isEmpty && `(${guests.length} ${guests.length === 1 ? 'familia' : 'familias'} - ${totalGuests} ${totalGuests === 1 ? 'invitado' : 'invitados'})`}
+          </h2>
+        )}
+        {headerAction && (
+          <div style={{ flex: '0 0 auto' }}>
+            {headerAction}
+          </div>
+        )}
+      </div>
       
       {isEmpty && (
         <div style={{
@@ -178,7 +172,7 @@ export const GuestList = ({
                             title="Declinar"
                             aria-label="Declinar invitación"
                           >
-                            <XIcon />
+                            <CloseIcon />
                           </button>
                         )}
                         {onCancelConfirmation && guest.status === 'confirmed' && (
@@ -199,6 +193,16 @@ export const GuestList = ({
                             aria-label="Reinvitar"
                           >
                             <CheckIcon />
+                          </button>
+                        )}
+                        {onDelete && baseGuestIds && !baseGuestIds.has(guest.id) && (
+                          <button
+                            className="button button-danger button-small button-icon"
+                            onClick={() => onDelete(guest.id)}
+                            title="Eliminar"
+                            aria-label="Eliminar invitado"
+                          >
+                            <DeleteIcon />
                           </button>
                         )}
                       </div>
@@ -309,7 +313,7 @@ export const GuestList = ({
                       title="Declinar"
                       aria-label="Declinar invitación"
                     >
-                      <XIcon />
+                      <CloseIcon />
                     </button>
                   )}
                   {onCancelConfirmation && guest.status === 'confirmed' && (
@@ -330,6 +334,16 @@ export const GuestList = ({
                       aria-label="Reinvitar"
                     >
                       <CheckIcon />
+                    </button>
+                  )}
+                  {onDelete && baseGuestIds && !baseGuestIds.has(guest.id) && (
+                    <button
+                      className="button button-danger button-small button-icon"
+                      onClick={() => onDelete(guest.id)}
+                      title="Eliminar"
+                      aria-label="Eliminar invitado"
+                    >
+                      <DeleteIcon />
                     </button>
                   )}
                 </div>

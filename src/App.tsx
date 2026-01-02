@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import CakeIcon from '@mui/icons-material/Cake';
+import SyncIcon from '@mui/icons-material/Sync';
 import { Guest, Pricing, GuestStatus } from './types';
 import { storage } from './utils/storage';
 import { syncService } from './utils/sync';
@@ -8,6 +10,7 @@ import { PricingConfig } from './components/PricingConfig';
 import { GuestManagement } from './components/GuestManagement';
 import { SummaryView } from './components/SummaryView';
 import { SyncConfig } from './components/SyncConfig';
+import { SyncStatusIndicator } from './components/SyncStatusIndicator';
 import { SkeletonLoader } from './components/SkeletonLoader';
 import { Toast } from './components/Toast';
 import './App.css';
@@ -33,14 +36,17 @@ function App() {
       setIsLoading(true);
       try {
         if (syncService.isConfigured()) {
+          window.dispatchEvent(new Event('sync-start'));
           // forceUpdate: true para siempre traer datos del bin al recargar
           const result = await storage.syncFromCloud(true);
           if (result.success) {
             // Recargar datos después de sincronizar
+            window.dispatchEvent(new Event('sync-success'));
             loadData();
           } else {
             // Si hay error, aún así cargar datos locales
             console.warn('Error al sincronizar desde la nube:', result.error);
+            window.dispatchEvent(new Event('sync-error'));
             loadData();
           }
         } else {
@@ -57,8 +63,9 @@ function App() {
 
   const loadData = () => {
     const savedStatuses = storage.getGuestStatuses();
+    const savedAdditionalGuests = storage.getAdditionalGuests();
     const savedPricing = storage.getPricing();
-    const mergedGuests = mergeGuestsWithStatuses(baseGuests, savedStatuses);
+    const mergedGuests = mergeGuestsWithStatuses(baseGuests, savedAdditionalGuests, savedStatuses);
     setGuests(mergedGuests);
     setPricing(savedPricing);
   };
@@ -69,6 +76,12 @@ function App() {
   };
 
   const handleGuestsChange = async (newGuests: Guest[]) => {
+    // Separar invitados base de los adicionales
+    const baseGuestIds = new Set(baseGuests.map(g => g.id));
+    const additionalGuests = newGuests
+      .filter(g => !baseGuestIds.has(g.id))
+      .map(({ status, confirmedAdults, confirmedChildren, confirmedBabies, ...rest }) => rest);
+    
     // Extraer solo los estados de los invitados
     const statuses: GuestStatus[] = newGuests.map((guest) => ({
       id: guest.id,
@@ -85,8 +98,14 @@ function App() {
         setTimeout(() => setSyncError(null), 5000);
       }
     });
+    storage.saveAdditionalGuests(additionalGuests, (error) => {
+      if (error) {
+        setSyncError(`Error al sincronizar: ${error}`);
+        setTimeout(() => setSyncError(null), 5000);
+      }
+    });
     // Actualizar la vista combinando base con estados
-    const mergedGuests = mergeGuestsWithStatuses(baseGuests, statuses);
+    const mergedGuests = mergeGuestsWithStatuses(baseGuests, additionalGuests, statuses);
     setGuests(mergedGuests);
   };
 
@@ -104,8 +123,13 @@ function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>🎉 Gestión de Invitados - Cumpleaños</h1>
-        <nav className="tabs" role="tablist" aria-label="Navegación principal">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', flexWrap: 'wrap', gap: '1rem' }}>
+          <h1 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
+            <CakeIcon /> Gestión de Invitados - Cumpleaños
+          </h1>
+          <SyncStatusIndicator />
+        </div>
+        <nav className="tabs" role="tablist" aria-label="Navegación principal" style={{ marginTop: '1rem' }}>
           <button
             role="tab"
             aria-selected={activeTab === 'guests'}
@@ -156,7 +180,7 @@ function App() {
               localStorage.setItem(ACTIVE_TAB_KEY, 'sync');
             }}
           >
-            🔄 Sincronizar
+            <SyncIcon style={{ fontSize: '1rem', marginRight: '0.25rem' }} /> Sincronizar
           </button>
         </nav>
       </header>
@@ -213,7 +237,12 @@ function App() {
           <>
             {activeTab === 'guests' && (
               <div role="tabpanel" id="guests-panel" aria-labelledby="guests-tab">
-                <GuestManagement key={refreshKey} guests={guests} onGuestsChange={handleGuestsChange} />
+                <GuestManagement 
+                  key={refreshKey} 
+                  guests={guests} 
+                  baseGuestIds={new Set(baseGuests.map(g => g.id))}
+                  onGuestsChange={handleGuestsChange} 
+                />
               </div>
             )}
             {activeTab === 'pricing' && (
