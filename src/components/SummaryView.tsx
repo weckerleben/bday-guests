@@ -37,23 +37,27 @@ export const SummaryView = ({ guests, pricing }: SummaryViewProps) => {
 
   return (
     <div>
-      {spots.availableSpots > 0 && (
-        <div className="card" style={{ marginBottom: '1.5rem' }}>
-          <div className="spots-info">
-            <h3>⚠️ Spots Disponibles</h3>
-            <p>
-              <strong>{spots.availableSpots}</strong> spots disponibles por invitados que
-              declinaron.
-            </p>
-            <p>Puedes reinvitar a estos invitados o añadir nuevos invitados para reasignar estos spots.</p>
-          </div>
-        </div>
-      )}
-
       <div className="summary-grid" style={{ marginBottom: '1.5rem' }}>
         {/* Fila 1, Columna 1: Resumen General */}
         <div className="card">
           <h2>Resumen General</h2>
+          {spots.availableSpots > 0 && (
+            <div style={{
+              padding: '0.75rem',
+              background: '#fef3c7',
+              border: '1px solid #fbbf24',
+              borderRadius: '6px',
+              marginBottom: '1rem',
+              fontSize: '0.9rem',
+              color: '#92400e',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem'
+            }}>
+              <span>⚠️</span>
+              <span><strong>{spots.availableSpots}</strong> spots disponibles</span>
+            </div>
+          )}
           <div className="stats-grid">
             <div className="stat-card">
               <h3>Total Invitados</h3>
