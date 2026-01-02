@@ -575,6 +575,14 @@ body {
   white-space: nowrap;
 }
 
+.guests-grid .guest-table-desktop .table td .actions {
+  display: flex;
+  flex-direction: row;
+  gap: 0.25rem;
+  align-items: center;
+  justify-content: flex-start;
+}
+
 .guests-grid .guest-table-desktop .button-small {
   padding: 0.3rem 0.5rem;
   font-size: 0.7rem;
@@ -1251,23 +1259,24 @@ body {
   }
 }
 
-/* Tablet: 2 columnas */
-@media (min-width: 769px) and (max-width: 1024px) {
+/* Tablet: 2 columnas - Mostrar tablas, no cards */
+@media (min-width: 769px) and (max-width: 1199px) {
+  .app-main {
+    padding: 1.5rem;
+  }
+
   .guests-grid {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr !important;
     gap: 1rem;
   }
 
-  /* Mostrar cards en móvil, ocultar tabla */
+  /* Mostrar tablas en tablet, ocultar cards */
   .guest-table-desktop {
-    display: none !important;
+    display: block !important;
   }
 
   .guest-cards-mobile {
-    display: flex !important;
-    flex-direction: column;
-    gap: 0.5rem;
-    margin-top: 0.5rem;
+    display: none !important;
   }
 
   .guest-card {
@@ -1339,48 +1348,34 @@ body {
     display: inline;
   }
 
-  /* Mostrar cards de pricing en móvil, ocultar tabla */
+  /* Mostrar tablas en tablet, ocultar cards */
   .pricing-table-desktop {
-    display: none;
+    display: block !important;
   }
 
   .pricing-items-mobile {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
+    display: none !important;
   }
 
-  .pricing-item-card {
-    padding: 0.75rem;
-  }
-
-  /* Mostrar cards de costos en móvil, ocultar tabla */
   .cost-table-desktop {
-    display: none;
+    display: block !important;
   }
 
   .cost-cards-mobile {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    margin-top: 1rem;
+    display: none !important;
   }
 
-  /* Mostrar cards de pagos en móvil, ocultar tabla */
   .payment-table-desktop {
-    display: none;
+    display: block !important;
   }
 
   .payment-cards-mobile {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    margin-top: 1rem;
+    display: none !important;
   }
 
-  /* Grid 2x2 a 1 columna en móviles */
+  /* Grid 2x2 en tablet */
   .summary-grid {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: 1fr 1fr !important;
     gap: 1rem !important;
   }
 
@@ -1429,25 +1424,13 @@ body {
   }
 }
 
-/* Tablets */
-@media (min-width: 769px) and (max-width: 1024px) {
-  .app-main {
-    padding: 1.5rem;
-  }
 
+/* Desktop adjustments - 3 columnas para guests-grid */
+@media (min-width: 1200px) {
   .guests-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
+    grid-template-columns: 1fr 1fr 1fr !important;
   }
 
-  .summary-grid {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-  }
-}
-
-/* Desktop adjustments */
-@media (min-width: 1025px) {
   .summary-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
