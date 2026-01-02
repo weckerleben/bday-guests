@@ -11,7 +11,6 @@ interface SyncStatusIndicatorProps {
 export const SyncStatusIndicator = ({ onSyncStateChange }: SyncStatusIndicatorProps) => {
   const [lastSync, setLastSync] = useState<string>('');
   const [syncStatus, setSyncStatus] = useState<'success' | 'error' | 'syncing' | 'not-configured'>('not-configured');
-  const [isSyncing, setIsSyncing] = useState(false);
 
   useEffect(() => {
     const updateStatus = () => {
@@ -49,7 +48,6 @@ export const SyncStatusIndicator = ({ onSyncStateChange }: SyncStatusIndicatorPr
     
     // Escuchar eventos de sincronización
     const handleSyncStart = () => {
-      setIsSyncing(true);
       setSyncStatus('syncing');
       if (onSyncStateChange) {
         onSyncStateChange(true);
@@ -57,7 +55,6 @@ export const SyncStatusIndicator = ({ onSyncStateChange }: SyncStatusIndicatorPr
     };
 
     const handleSyncSuccess = () => {
-      setIsSyncing(false);
       setSyncStatus('success');
       updateStatus();
       if (onSyncStateChange) {
@@ -66,7 +63,6 @@ export const SyncStatusIndicator = ({ onSyncStateChange }: SyncStatusIndicatorPr
     };
 
     const handleSyncError = () => {
-      setIsSyncing(false);
       setSyncStatus('error');
       if (onSyncStateChange) {
         onSyncStateChange(false);

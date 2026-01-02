@@ -34,8 +34,9 @@ export const GuestForm = ({ guest, onSave, onCancel, maxSpots }: GuestFormProps)
       
       // Validar límite de spots (solo adultos + niños, bebés no tienen límite)
       if (maxSpots !== undefined && (field === 'adults' || field === 'children')) {
-        const totalAdultsAndChildren = (field === 'adults' ? value : updated.adults) as number + 
-                                       (field === 'children' ? value : updated.children) as number;
+        const adultsValue = field === 'adults' ? (typeof value === 'number' ? value : Number(value) || 0) : updated.adults;
+        const childrenValue = field === 'children' ? (typeof value === 'number' ? value : Number(value) || 0) : updated.children;
+        const totalAdultsAndChildren = adultsValue + childrenValue;
         if (totalAdultsAndChildren > maxSpots) {
           setError(`No puedes añadir más de ${maxSpots} spots (adultos + niños). Tienes ${totalAdultsAndChildren} spots solicitados.`);
         } else {
