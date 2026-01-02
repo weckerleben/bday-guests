@@ -1,0 +1,171 @@
+import { useState, useEffect } from 'react';
+import { syncService } from '../utils/sync';
+import { storage } from '../utils/storage';
+
+interface SyncConfigProps {
+  onSyncComplete: () => void;
+}
+
+export const SyncConfig = ({ onSyncComplete }: SyncConfigProps) => {
+  const [isConfigured, setIsConfigured] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncStatus, setSyncStatus] = useState<string>('');
+  const [lastSync, setLastSync] = useState<string>('');
+
+  useEffect(() => {
+    const checkConfig = () => {
+      const configured = syncService.isConfigured();
+      const apiKey = syncService.getApiKey();
+      const binId = syncService.getBinId();
+      
+      // Debug: mostrar qué se está detectando
+      console.log('Sync config check:', {
+        configured,
+        hasApiKey: !!apiKey,
+        hasBinId: !!binId,
+        apiKeyLength: apiKey?.length || 0,
+        binIdLength: binId?.length || 0,
+      });
+      
+      setIsConfigured(configured);
+      if (configured) {
+        updateLastSyncTime();
+      }
+    };
+    
+    checkConfig();
+    
+    // Revisar periódicamente por si se cargan las variables después
+    const interval = setInterval(checkConfig, 2000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const updateLastSyncTime = () => {
+    const lastSyncTime = localStorage.getItem('bday-last-sync');
+    if (lastSyncTime) {
+      const date = new Date(parseInt(lastSyncTime));
+      setLastSync(date.toLocaleString('es-ES'));
+    } else {
+      setLastSync('Nunca');
+    }
+  };
+
+  const handleSyncFromCloud = async () => {
+    setIsSyncing(true);
+    setSyncStatus('Sincronizando desde la nube...');
+
+    const result = await storage.syncFromCloud();
+    if (result.success) {
+      setSyncStatus('Datos sincronizados desde la nube');
+      updateLastSyncTime();
+      onSyncComplete();
+    } else {
+      setSyncStatus(result.error || 'Error al sincronizar desde la nube');
+    }
+
+    setIsSyncing(false);
+  };
+
+  const handleSyncToCloud = async () => {
+    setIsSyncing(true);
+    setSyncStatus('Sincronizando a la nube...');
+
+    const result = await storage.syncToCloud();
+    if (result.success) {
+      setSyncStatus('Datos sincronizados a la nube');
+      updateLastSyncTime();
+    } else {
+      setSyncStatus(result.error || 'Error al sincronizar a la nube');
+    }
+
+    setIsSyncing(false);
+  };
+
+  if (!isConfigured) {
+    const apiKey = syncService.getApiKey();
+    const binId = syncService.getBinId();
+    
+    return (
+      <div className="card">
+        <h2>🔄 Sincronización en la Nube</h2>
+        <div style={{ padding: '1rem', background: '#fef3c7', borderRadius: '6px', borderLeft: '4px solid #f59e0b' }}>
+          <p style={{ color: '#92400e', fontWeight: '500', marginBottom: '0.5rem' }}>
+            ⚠️ Sincronización no configurada
+          </p>
+          <p style={{ color: '#78350f', fontSize: '0.9rem' }}>
+            Para habilitar la sincronización, configura las variables de entorno en el archivo <code>.env</code>:
+          </p>
+          <pre style={{ 
+            background: '#fff', 
+            padding: '0.75rem', 
+            borderRadius: '4px', 
+            marginTop: '0.5rem',
+            fontSize: '0.85rem',
+            overflow: 'auto'
+          }}>
+{`VITE_JSONBIN_API_KEY=tu_api_key_aqui
+VITE_JSONBIN_BIN_ID=tu_bin_id_aqui`}
+          </pre>
+          <div style={{ marginTop: '0.75rem', padding: '0.75rem', background: '#fff', borderRadius: '4px', fontSize: '0.85rem' }}>
+            <p style={{ color: '#78350f', fontWeight: '500', marginBottom: '0.5rem' }}>Estado actual:</p>
+            <p style={{ color: '#78350f', margin: '0.25rem 0' }}>
+              API Key: {apiKey ? `✓ Detectada (${apiKey.length} caracteres)` : '✗ No detectada'}
+            </p>
+            <p style={{ color: '#78350f', margin: '0.25rem 0' }}>
+              Bin ID: {binId ? `✓ Detectado (${binId.length} caracteres)` : '✗ No detectado'}
+            </p>
+          </div>
+          <p style={{ color: '#78350f', fontSize: '0.85rem', marginTop: '0.75rem' }}>
+            1. Crea una cuenta en <a href="https://jsonbin.io" target="_blank" rel="noopener noreferrer" style={{ color: '#667eea' }}>jsonbin.io</a> y obtén tu API Key<br/>
+            2. Crea un bin o usa uno existente y copia su ID<br/>
+            3. Añade estas variables al archivo <code>.env</code> en la raíz del proyecto<br/>
+            4. <strong>Reinicia el servidor de desarrollo</strong> (<code>npm run dev</code>) - ¡Esto es importante!
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="card">
+      <h2>🔄 Sincronización en la Nube</h2>
+      <div style={{ marginBottom: '1rem' }}>
+        <p style={{ color: '#10b981', fontWeight: '500' }}>
+          ✓ Sincronización configurada
+        </p>
+        <p style={{ fontSize: '0.9rem', color: '#6b7280', marginTop: '0.5rem' }}>
+          Bin ID: <code style={{ background: '#f3f4f6', padding: '0.2rem 0.4rem', borderRadius: '3px' }}>{syncService.getBinId()}</code>
+        </p>
+        {lastSync && (
+          <p style={{ fontSize: '0.9rem', color: '#6b7280', marginTop: '0.5rem' }}>
+            Última sincronización: {lastSync}
+          </p>
+        )}
+        <p style={{ fontSize: '0.85rem', color: '#6b7280', marginTop: '0.5rem', fontStyle: 'italic' }}>
+          La sincronización ocurre al cargar la página y después de cada cambio (crear, editar, eliminar)
+        </p>
+      </div>
+      <div className="actions">
+        <button
+          className="button button-primary"
+          onClick={handleSyncFromCloud}
+          disabled={isSyncing}
+        >
+          {isSyncing ? 'Sincronizando...' : '📥 Sincronizar desde la nube'}
+        </button>
+        <button
+          className="button button-success"
+          onClick={handleSyncToCloud}
+          disabled={isSyncing}
+        >
+          {isSyncing ? 'Sincronizando...' : '📤 Sincronizar a la nube'}
+        </button>
+      </div>
+      {syncStatus && (
+        <p style={{ marginTop: '1rem', color: syncStatus.includes('Error') ? '#ef4444' : '#10b981' }}>
+          {syncStatus}
+        </p>
+      )}
+    </div>
+  );
+};
