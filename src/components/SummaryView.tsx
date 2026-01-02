@@ -87,20 +87,24 @@ export const SummaryView = ({ guests, pricing }: SummaryViewProps) => {
               <thead>
                 <tr>
                   <th>Persona</th>
-                  <th>Monto a Pagar</th>
+                  <th>Costos - Invitados</th>
+                  <th>Costos - Confirmados</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
                   <td><strong>Diana</strong></td>
                   <td>{formatCurrency(3000000)}</td>
+                  <td>{formatCurrency(3000000)}</td>
                 </tr>
                 <tr>
                   <td><strong>William</strong></td>
+                  <td>{formatCurrency(Math.max(0, invitedCosts.total - 3000000))}</td>
                   <td>{formatCurrency(Math.max(0, confirmedCosts.total - 3000000))}</td>
                 </tr>
                 <tr style={{ fontWeight: 'bold', background: '#f3f4f6', fontSize: '1.1rem' }}>
                   <td>Total</td>
+                  <td>{formatCurrency(invitedCosts.total)}</td>
                   <td>{formatCurrency(confirmedCosts.total)}</td>
                 </tr>
               </tbody>
@@ -109,21 +113,48 @@ export const SummaryView = ({ guests, pricing }: SummaryViewProps) => {
           {/* Cards para móvil */}
           <div className="payment-cards-mobile">
             <div className="payment-card">
-              <div className="payment-card-row">
-                <span className="payment-card-label"><strong>Diana</strong></span>
-                <span className="payment-card-value">{formatCurrency(3000000)}</span>
+              <div className="payment-card-header">
+                <strong>Diana</strong>
+              </div>
+              <div className="payment-card-body">
+                <div className="payment-card-row">
+                  <span className="payment-card-label">Costos - Invitados:</span>
+                  <span className="payment-card-value">{formatCurrency(3000000)}</span>
+                </div>
+                <div className="payment-card-row">
+                  <span className="payment-card-label">Costos - Confirmados:</span>
+                  <span className="payment-card-value">{formatCurrency(3000000)}</span>
+                </div>
               </div>
             </div>
             <div className="payment-card">
-              <div className="payment-card-row">
-                <span className="payment-card-label"><strong>William</strong></span>
-                <span className="payment-card-value">{formatCurrency(Math.max(0, confirmedCosts.total - 3000000))}</span>
+              <div className="payment-card-header">
+                <strong>William</strong>
+              </div>
+              <div className="payment-card-body">
+                <div className="payment-card-row">
+                  <span className="payment-card-label">Costos - Invitados:</span>
+                  <span className="payment-card-value">{formatCurrency(Math.max(0, invitedCosts.total - 3000000))}</span>
+                </div>
+                <div className="payment-card-row">
+                  <span className="payment-card-label">Costos - Confirmados:</span>
+                  <span className="payment-card-value">{formatCurrency(Math.max(0, confirmedCosts.total - 3000000))}</span>
+                </div>
               </div>
             </div>
             <div className="payment-card" style={{ background: '#f3f4f6', fontWeight: 'bold', fontSize: '1.1rem' }}>
-              <div className="payment-card-row">
-                <span className="payment-card-label">Total</span>
-                <span className="payment-card-value">{formatCurrency(confirmedCosts.total)}</span>
+              <div className="payment-card-header">
+                Total
+              </div>
+              <div className="payment-card-body">
+                <div className="payment-card-row">
+                  <span className="payment-card-label">Costos - Invitados:</span>
+                  <span className="payment-card-value">{formatCurrency(invitedCosts.total)}</span>
+                </div>
+                <div className="payment-card-row">
+                  <span className="payment-card-label">Costos - Confirmados:</span>
+                  <span className="payment-card-value">{formatCurrency(confirmedCosts.total)}</span>
+                </div>
               </div>
             </div>
           </div>

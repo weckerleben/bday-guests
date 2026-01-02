@@ -702,6 +702,21 @@ body {
   padding: 1rem;
 }
 
+.payment-card-header {
+  font-weight: 600;
+  color: #111827;
+  font-size: 1rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.payment-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
 .payment-card-row {
   display: flex;
   justify-content: space-between;
@@ -709,14 +724,14 @@ body {
 }
 
 .payment-card-label {
-  color: #111827;
-  font-size: 1rem;
+  color: #6b7280;
+  font-size: 0.9rem;
 }
 
 .payment-card-value {
   font-weight: 600;
   color: #111827;
-  font-size: 1rem;
+  font-size: 0.95rem;
 }
 
 /* Cost Table - Desktop */
