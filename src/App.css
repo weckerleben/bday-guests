@@ -1062,6 +1062,53 @@ body {
     overflow: visible !important;
   }
 
+  /* Forzar que las tablas de pricing estén ocultas en móvil */
+  .pricing-table-desktop,
+  .pricing-table-desktop .table,
+  .pricing-table-desktop * {
+    display: none !important;
+    overflow: visible !important;
+  }
+
+  /* Mostrar cards de pricing en móvil */
+  .pricing-items-mobile {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .pricing-item-card {
+    max-width: 100%;
+    overflow: visible;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    padding: 0.75rem;
+  }
+
+  .pricing-item-card * {
+    max-width: 100%;
+    overflow-wrap: break-word;
+  }
+
+  .pricing-item-card input,
+  .pricing-item-card select {
+    width: 100%;
+    box-sizing: border-box;
+    min-width: 0;
+  }
+
+  .pricing-item-card .form-row {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  /* Asegurar que el contenedor de pricing no tenga scroll horizontal */
+  .card .pricing-table-desktop,
+  .card .pricing-table-desktop .table {
+    display: none !important;
+  }
+
   /* Mostrar cards de resumen en móvil */
   .payment-cards-mobile,
   .cost-cards-mobile {
