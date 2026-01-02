@@ -5,10 +5,12 @@ interface GuestFormProps {
   guest: Guest | null;
   onSave: (guest: Omit<Guest, 'id' | 'status' | 'confirmedAdults' | 'confirmedChildren' | 'confirmedBabies'>) => void;
   onCancel: () => void;
-  maxSpots?: number; // Máximo de spots disponibles (solo adultos + niños, sin bebés)
+  maxSpots?: number; // Máximo de spots disponibles (solo adultos + niños, sin bebés) - DEPRECATED
+  maxAdults?: number; // Máximo de adultos disponibles
+  maxChildren?: number; // Máximo de niños disponibles
 }
 
-export const GuestForm = ({ guest, onSave, onCancel, maxSpots }: GuestFormProps) => {
+export const GuestForm = ({ guest, onSave, onCancel, maxSpots, maxAdults, maxChildren }: GuestFormProps) => {
   const [formData, setFormData] = useState({
     familyName: '',
     adults: 0,
@@ -32,8 +34,27 @@ export const GuestForm = ({ guest, onSave, onCancel, maxSpots }: GuestFormProps)
     setFormData((prev) => {
       const updated = { ...prev, [field]: value };
       
-      // Validar límite de spots (solo adultos + niños, bebés no tienen límite)
-      if (maxSpots !== undefined && (field === 'adults' || field === 'children')) {
+      // Validar límites por tipo (adultos y niños por separado)
+      if (field === 'adults' && maxAdults !== undefined) {
+        const adultsValue = typeof value === 'number' ? value : Number(value) || 0;
+        if (adultsValue > maxAdults) {
+          setError(`No puedes añadir más de ${maxAdults} adultos. Disponibles: ${maxAdults}, Solicitados: ${adultsValue}`);
+        } else if (maxChildren !== undefined && updated.children > maxChildren) {
+          setError(`No puedes añadir más de ${maxChildren} niños. Disponibles: ${maxChildren}, Solicitados: ${updated.children}`);
+        } else {
+          setError('');
+        }
+      } else if (field === 'children' && maxChildren !== undefined) {
+        const childrenValue = typeof value === 'number' ? value : Number(value) || 0;
+        if (childrenValue > maxChildren) {
+          setError(`No puedes añadir más de ${maxChildren} niños. Disponibles: ${maxChildren}, Solicitados: ${childrenValue}`);
+        } else if (maxAdults !== undefined && updated.adults > maxAdults) {
+          setError(`No puedes añadir más de ${maxAdults} adultos. Disponibles: ${maxAdults}, Solicitados: ${updated.adults}`);
+        } else {
+          setError('');
+        }
+      } else if (maxSpots !== undefined && (field === 'adults' || field === 'children')) {
+        // Fallback al método antiguo si no se proporcionan maxAdults/maxChildren
         const adultsValue = field === 'adults' ? (typeof value === 'number' ? value : Number(value) || 0) : updated.adults;
         const childrenValue = field === 'children' ? (typeof value === 'number' ? value : Number(value) || 0) : updated.children;
         const totalAdultsAndChildren = adultsValue + childrenValue;
@@ -61,8 +82,17 @@ export const GuestForm = ({ guest, onSave, onCancel, maxSpots }: GuestFormProps)
       return;
     }
     
-    // Validar límite de spots (solo adultos + niños)
-    if (maxSpots !== undefined) {
+    // Validar límites por tipo (adultos y niños por separado)
+    if (maxAdults !== undefined && formData.adults > maxAdults) {
+      setError(`No puedes añadir más de ${maxAdults} adultos. Disponibles: ${maxAdults}, Solicitados: ${formData.adults}`);
+      return;
+    }
+    if (maxChildren !== undefined && formData.children > maxChildren) {
+      setError(`No puedes añadir más de ${maxChildren} niños. Disponibles: ${maxChildren}, Solicitados: ${formData.children}`);
+      return;
+    }
+    // Fallback al método antiguo si no se proporcionan maxAdults/maxChildren
+    if (maxSpots !== undefined && maxAdults === undefined && maxChildren === undefined) {
       const totalAdultsAndChildren = formData.adults + formData.children;
       if (totalAdultsAndChildren > maxSpots) {
         setError(`No puedes añadir más de ${maxSpots} spots (adultos + niños). Tienes ${totalAdultsAndChildren} spots solicitados.`);
@@ -75,7 +105,7 @@ export const GuestForm = ({ guest, onSave, onCancel, maxSpots }: GuestFormProps)
 
   return (
     <form onSubmit={handleSubmit} style={{ marginTop: '1rem', padding: '1rem', background: '#f9fafb', borderRadius: '6px' }}>
-      {maxSpots !== undefined && (
+      {(maxAdults !== undefined || maxChildren !== undefined || maxSpots !== undefined) && (
         <div style={{
           padding: '0.75rem',
           background: '#eff6ff',
@@ -85,7 +115,17 @@ export const GuestForm = ({ guest, onSave, onCancel, maxSpots }: GuestFormProps)
           fontSize: '0.9rem',
           color: '#1e40af'
         }}>
-          <strong>Spots disponibles:</strong> {maxSpots} (solo adultos + niños). Los bebés no tienen límite.
+          <strong>Spots disponibles:</strong>
+          {maxAdults !== undefined || maxChildren !== undefined ? (
+            <span>
+              {maxAdults !== undefined && `${maxAdults} adultos`}
+              {maxAdults !== undefined && maxChildren !== undefined && ' y '}
+              {maxChildren !== undefined && `${maxChildren} niños`}
+            </span>
+          ) : (
+            <span> {maxSpots} (solo adultos + niños)</span>
+          )}
+          . Los bebés no tienen límite.
         </div>
       )}
       {error && (

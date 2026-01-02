@@ -180,25 +180,60 @@ export const GuestManagement = ({ guests, baseGuestIds, onGuestsChange }: GuestM
   };
 
   const handleAddNewFamily = (formData: Omit<BaseGuest, 'id'>) => {
-    // Calcular spots disponibles (solo adultos + niños, sin bebés)
-    const availableSpotsAdultsChildren = guests.reduce((sum, guest) => {
-      if (guest.status === 'declined') {
-        return sum + guest.adults + guest.children; // Solo adultos + niños
-      }
-      if (guest.status === 'confirmed') {
-        // Calcular spots no confirmados (solo adultos + niños)
-        const adults = guest.confirmedAdults !== undefined ? guest.confirmedAdults : guest.adults;
-        const children = guest.confirmedChildren !== undefined ? guest.confirmedChildren : guest.children;
-        return sum + (guest.adults - adults) + (guest.children - children);
-      }
-      return sum;
-    }, 0);
+    // Calcular spots disponibles por tipo (adultos y niños por separado)
+    // Usar la misma lógica que el cálculo general
+    const calculateAvailableSpots = (guestList: Guest[]) => {
+      return guestList.reduce((acc, guest) => {
+        // Si es un invitado base (no adicional), solo contar declinados y confirmaciones parciales
+        if (baseGuestIds.has(guest.id)) {
+          if (guest.status === 'declined') {
+            return {
+              adults: acc.adults + guest.adults,
+              children: acc.children + guest.children,
+            };
+          }
+          if (guest.status === 'confirmed') {
+            // Calcular spots no confirmados por tipo
+            const adults = guest.confirmedAdults !== undefined ? guest.confirmedAdults : guest.adults;
+            const children = guest.confirmedChildren !== undefined ? guest.confirmedChildren : guest.children;
+            return {
+              adults: acc.adults + (guest.adults - adults),
+              children: acc.children + (guest.children - children),
+            };
+          }
+          return acc;
+        } else {
+          // Si es una familia adicional (nueva), RESTAR sus spots de los disponibles
+          if (guest.status === 'invited' || guest.status === 'confirmed') {
+            const adults = guest.status === 'confirmed' && guest.confirmedAdults !== undefined 
+              ? guest.confirmedAdults 
+              : guest.adults;
+            const children = guest.status === 'confirmed' && guest.confirmedChildren !== undefined 
+              ? guest.confirmedChildren 
+              : guest.children;
+            return {
+              adults: acc.adults - adults,
+              children: acc.children - children,
+            };
+          }
+          return acc;
+        }
+      }, { adults: 0, children: 0 });
+    };
     
-    // Validar que no exceda los spots disponibles (solo adultos + niños)
-    const requestedSpots = formData.adults + formData.children;
-    if (requestedSpots > availableSpotsAdultsChildren) {
+    const availableSpots = calculateAvailableSpots(guests);
+    
+    // Validar que no exceda los spots disponibles por tipo
+    if (formData.adults > availableSpots.adults) {
       setToast({
-        message: `✗ No hay suficientes spots disponibles. Disponibles: ${availableSpotsAdultsChildren}, Solicitados: ${requestedSpots}`,
+        message: `✗ No hay suficientes spots de adultos disponibles. Disponibles: ${availableSpots.adults}, Solicitados: ${formData.adults}`,
+        type: 'error'
+      });
+      return;
+    }
+    if (formData.children > availableSpots.children) {
+      setToast({
+        message: `✗ No hay suficientes spots de niños disponibles. Disponibles: ${availableSpots.children}, Solicitados: ${formData.children}`,
         type: 'error'
       });
       return;
@@ -236,19 +271,45 @@ export const GuestManagement = ({ guests, baseGuestIds, onGuestsChange }: GuestM
 
   const decliningGuest = decliningGuestId ? guests.find((g) => g.id === decliningGuestId) : null;
   
-  // Calcular spots disponibles para adultos + niños (sin bebés)
-  const availableSpotsAdultsChildren = guests.reduce((sum, guest) => {
-    if (guest.status === 'declined') {
-      return sum + guest.adults + guest.children; // Solo adultos + niños
+  // Calcular spots disponibles por tipo (adultos y niños por separado)
+  const availableSpots = guests.reduce((acc, guest) => {
+    // Si es un invitado base (no adicional), solo contar declinados y confirmaciones parciales
+    if (baseGuestIds.has(guest.id)) {
+      if (guest.status === 'declined') {
+        return {
+          adults: acc.adults + guest.adults,
+          children: acc.children + guest.children,
+        };
+      }
+      if (guest.status === 'confirmed') {
+        // Calcular spots no confirmados por tipo
+        const adults = guest.confirmedAdults !== undefined ? guest.confirmedAdults : guest.adults;
+        const children = guest.confirmedChildren !== undefined ? guest.confirmedChildren : guest.children;
+        return {
+          adults: acc.adults + (guest.adults - adults),
+          children: acc.children + (guest.children - children),
+        };
+      }
+      return acc;
+    } else {
+      // Si es una familia adicional (nueva), RESTAR sus spots de los disponibles
+      // porque estos spots ya fueron "usados" al agregar la familia
+      if (guest.status === 'invited' || guest.status === 'confirmed') {
+        const adults = guest.status === 'confirmed' && guest.confirmedAdults !== undefined 
+          ? guest.confirmedAdults 
+          : guest.adults;
+        const children = guest.status === 'confirmed' && guest.confirmedChildren !== undefined 
+          ? guest.confirmedChildren 
+          : guest.children;
+        return {
+          adults: acc.adults - adults,
+          children: acc.children - children,
+        };
+      }
+      // Si la familia adicional fue declinada, no restar (sus spots vuelven a estar disponibles)
+      return acc;
     }
-    if (guest.status === 'confirmed') {
-      // Calcular spots no confirmados (solo adultos + niños)
-      const adults = guest.confirmedAdults !== undefined ? guest.confirmedAdults : guest.adults;
-      const children = guest.confirmedChildren !== undefined ? guest.confirmedChildren : guest.children;
-      return sum + (guest.adults - adults) + (guest.children - children);
-    }
-    return sum;
-  }, 0);
+  }, { adults: 0, children: 0 });
 
   return (
     <div>
@@ -312,7 +373,8 @@ export const GuestManagement = ({ guests, baseGuestIds, onGuestsChange }: GuestM
                 guest={null}
                 onSave={handleAddNewFamily}
                 onCancel={() => setShowAddForm(false)}
-                maxSpots={availableSpotsAdultsChildren}
+                maxAdults={availableSpots.adults}
+                maxChildren={availableSpots.children}
               />
             </div>
           ) : null}
@@ -329,16 +391,16 @@ export const GuestManagement = ({ guests, baseGuestIds, onGuestsChange }: GuestM
             onDelete={handleDelete}
             showActions={true}
             headerAction={
-              availableSpotsAdultsChildren > 0 ? (
+              (availableSpots.adults > 0 || availableSpots.children > 0) ? (
                 <button
                   className="button button-primary"
                   onClick={() => setShowAddForm(true)}
                   style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
                 >
                   <AddIcon style={{ fontSize: '1.2rem' }} /> Añadir Nueva Familia
-                  {availableSpotsAdultsChildren > 0 && (
+                  {(availableSpots.adults > 0 || availableSpots.children > 0) && (
                     <span style={{ fontSize: '0.85rem', opacity: 0.9 }}>
-                      ({availableSpotsAdultsChildren} spots)
+                      ({availableSpots.adults} adultos, {availableSpots.children} niños)
                     </span>
                   )}
                 </button>
