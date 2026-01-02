@@ -924,6 +924,8 @@ body {
 
   .app-main {
     padding: 0.75rem;
+    max-width: 100%;
+    overflow-x: hidden;
   }
 
   .mobile-menu-header {
@@ -1047,6 +1049,76 @@ body {
   .guests-grid .card * {
     max-width: 100%;
     overflow-wrap: break-word;
+  }
+
+  /* Forzar que las tablas de resumen estén ocultas en móvil */
+  .payment-table-desktop,
+  .payment-table-desktop .table,
+  .payment-table-desktop *,
+  .cost-table-desktop,
+  .cost-table-desktop .table,
+  .cost-table-desktop * {
+    display: none !important;
+    overflow: visible !important;
+  }
+
+  /* Mostrar cards de resumen en móvil */
+  .payment-cards-mobile,
+  .cost-cards-mobile {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+
+  /* Prevenir scroll horizontal en cards de resumen */
+  .payment-card,
+  .cost-card {
+    max-width: 100%;
+    overflow: visible;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    padding: 0.75rem;
+  }
+
+  .payment-card-header,
+  .cost-card-header {
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.4rem;
+  }
+
+  .payment-card-body,
+  .cost-card-body {
+    gap: 0.4rem;
+  }
+
+  .payment-card-label,
+  .cost-card-label {
+    font-size: 0.85rem;
+  }
+
+  .payment-card-value,
+  .cost-card-value {
+    font-size: 0.9rem;
+  }
+
+  .payment-card *,
+  .cost-card * {
+    max-width: 100%;
+    overflow-wrap: break-word;
+  }
+
+  /* Prevenir scroll horizontal en contenedores de resumen */
+  .summary-grid,
+  .summary-grid .card {
+    max-width: 100%;
+    overflow-x: hidden;
+    overflow-wrap: break-word;
+  }
+
+  .summary-grid .card .table {
+    display: none !important;
   }
 
   /* Estilos de cards y botones en móvil */
