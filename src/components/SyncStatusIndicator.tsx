@@ -100,20 +100,26 @@ export const SyncStatusIndicator = ({ onSyncStateChange }: SyncStatusIndicatorPr
 
   const getStatusIcon = () => {
     if (syncStatus === 'syncing') {
-      return <SyncIcon style={{ fontSize: '1rem', animation: 'spin 1s linear infinite' }} />;
+      return <SyncIcon style={{ fontSize: '0.85rem', animation: 'spin 1s linear infinite' }} />;
     }
     if (syncStatus === 'error') {
-      return <ErrorIcon style={{ fontSize: '1rem' }} />;
+      return <ErrorIcon style={{ fontSize: '0.85rem' }} />;
     }
-    return <CheckCircleIcon style={{ fontSize: '1rem' }} />;
+    return <CheckCircleIcon style={{ fontSize: '0.85rem' }} />;
   };
 
-  // Formatear hora más corta para móvil
-  const getShortTime = () => {
+  // Formatear fecha y hora corta
+  const getShortDateTime = () => {
     if (!lastSync || lastSync === 'Nunca') return '';
     try {
-      // lastSync ya viene formateado como "02/01/2026, 16:52:42"
-      // Extraer solo la hora
+      // lastSync viene formateado como "02/01/2026, 16:52:42"
+      // Extraer fecha y hora en formato corto: "DD/MM HH:mm"
+      const match = lastSync.match(/(\d{2})\/(\d{2})\/(\d{4}),\s*(\d{2}:\d{2})/);
+      if (match) {
+        const [, day, month, , time] = match;
+        return `${day}/${month} ${time}`;
+      }
+      // Fallback: solo hora si no coincide el formato
       const timeMatch = lastSync.match(/(\d{2}:\d{2})/);
       return timeMatch ? timeMatch[1] : '';
     } catch {
@@ -123,14 +129,14 @@ export const SyncStatusIndicator = ({ onSyncStateChange }: SyncStatusIndicatorPr
 
   return (
     <div className="sync-status-container">
-      {/* Versión desktop: completa */}
+      {/* Versión desktop: compacta */}
       <div
         className="sync-status-desktop"
         style={{
           display: 'none',
           alignItems: 'center',
-          gap: '0.5rem',
-          padding: '0.5rem 1rem',
+          gap: '0.35rem',
+          padding: '0.35rem 0.6rem',
           background: syncStatus === 'error' 
             ? 'rgba(254, 226, 226, 0.95)' 
             : syncStatus === 'syncing' 
@@ -138,7 +144,7 @@ export const SyncStatusIndicator = ({ onSyncStateChange }: SyncStatusIndicatorPr
             : 'rgba(240, 253, 244, 0.95)',
           borderRadius: '6px',
           border: `1px solid ${getStatusColor()}`,
-          fontSize: '0.85rem',
+          fontSize: '0.75rem',
           color: syncStatus === 'error' ? '#991b1b' : syncStatus === 'syncing' ? '#1e40af' : '#166534',
           boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
           whiteSpace: 'nowrap',
@@ -146,12 +152,13 @@ export const SyncStatusIndicator = ({ onSyncStateChange }: SyncStatusIndicatorPr
         title={syncStatus === 'syncing' ? 'Sincronizando...' : syncStatus === 'error' ? 'Error en sincronización' : `Última sincronización: ${lastSync}`}
       >
         {getStatusIcon()}
-        <span style={{ fontWeight: '500' }}>
-          {syncStatus === 'syncing' ? 'Sincronizando...' : syncStatus === 'error' ? 'Error' : 'Sincronizado'}
-        </span>
-        {syncStatus !== 'syncing' && lastSync && (
-          <span style={{ opacity: 0.8, fontSize: '0.75rem' }}>
-            {lastSync}
+        {syncStatus === 'syncing' ? (
+          <span style={{ fontWeight: '500' }}>Sync...</span>
+        ) : syncStatus === 'error' ? (
+          <span style={{ fontWeight: '500' }}>Error</span>
+        ) : (
+          <span style={{ opacity: 0.9, fontSize: '0.7rem' }}>
+            {getShortDateTime()}
           </span>
         )}
       </div>
@@ -163,7 +170,7 @@ export const SyncStatusIndicator = ({ onSyncStateChange }: SyncStatusIndicatorPr
           display: 'flex',
           alignItems: 'center',
           gap: '0.25rem',
-          padding: '0.4rem 0.6rem',
+          padding: '0.3rem 0.5rem',
           background: syncStatus === 'error' 
             ? 'rgba(254, 226, 226, 0.95)' 
             : syncStatus === 'syncing' 
@@ -171,7 +178,7 @@ export const SyncStatusIndicator = ({ onSyncStateChange }: SyncStatusIndicatorPr
             : 'rgba(240, 253, 244, 0.95)',
           borderRadius: '6px',
           border: `1px solid ${getStatusColor()}`,
-          fontSize: '0.75rem',
+          fontSize: '0.7rem',
           color: syncStatus === 'error' ? '#991b1b' : syncStatus === 'syncing' ? '#1e40af' : '#166534',
           boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
         }}
@@ -183,8 +190,8 @@ export const SyncStatusIndicator = ({ onSyncStateChange }: SyncStatusIndicatorPr
         ) : syncStatus === 'error' ? (
           <span style={{ fontWeight: '500' }}>Error</span>
         ) : (
-          <span style={{ opacity: 0.9, fontSize: '0.7rem' }}>
-            {getShortTime()}
+          <span style={{ opacity: 0.9, fontSize: '0.65rem' }}>
+            {getShortDateTime()}
           </span>
         )}
       </div>
