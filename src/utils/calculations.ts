@@ -68,25 +68,26 @@ export const calculateCosts = (guests: Guest[], pricing: Pricing): CostBreakdown
 export const calculateSpots = (guests: Guest[]): SpotsInfo => {
   const totalSpots = guests.reduce((sum, guest) => {
     if (guest.status === 'invited' || guest.status === 'confirmed') {
-      return sum + guest.adults + guest.children + guest.babies;
+      // Solo contar adultos y niños, excluir bebés
+      return sum + guest.adults + guest.children;
     }
     return sum;
   }, 0);
 
   const reservedSpots = guests.reduce((sum, guest) => {
     if (guest.status === 'confirmed') {
-      // Usar cantidades confirmadas si existen
+      // Usar cantidades confirmadas si existen, solo adultos y niños
       const adults = guest.confirmedAdults !== undefined ? guest.confirmedAdults : guest.adults;
       const children = guest.confirmedChildren !== undefined ? guest.confirmedChildren : guest.children;
-      const babies = guest.confirmedBabies !== undefined ? guest.confirmedBabies : guest.babies;
-      return sum + adults + children + babies;
+      return sum + adults + children;
     }
     return sum;
   }, 0);
 
   const declinedSpots = guests.reduce((sum, guest) => {
     if (guest.status === 'declined') {
-      return sum + guest.adults + guest.children + guest.babies;
+      // Solo contar adultos y niños, excluir bebés
+      return sum + guest.adults + guest.children;
     }
     return sum;
   }, 0);
@@ -94,10 +95,10 @@ export const calculateSpots = (guests: Guest[]): SpotsInfo => {
   const partialDeclined = guests.reduce((sum, guest) => {
     if (guest.status === 'confirmed') {
       // Si hay confirmación parcial, los no confirmados son spots disponibles
+      // Solo contar adultos y niños, excluir bebés
       const adults = guest.confirmedAdults !== undefined ? guest.confirmedAdults : guest.adults;
       const children = guest.confirmedChildren !== undefined ? guest.confirmedChildren : guest.children;
-      const babies = guest.confirmedBabies !== undefined ? guest.confirmedBabies : guest.babies;
-      const notConfirmed = (guest.adults - adults) + (guest.children - children) + (guest.babies - babies);
+      const notConfirmed = (guest.adults - adults) + (guest.children - children);
       return sum + notConfirmed;
     }
     return sum;
