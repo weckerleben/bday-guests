@@ -181,47 +181,36 @@ export const GuestManagement = ({ guests, baseGuestIds, onGuestsChange }: GuestM
 
   const handleAddNewFamily = (formData: Omit<BaseGuest, 'id'>) => {
     // Calcular spots disponibles por tipo (adultos y niños por separado)
-    // Usar la misma lógica que el cálculo general
-    const calculateAvailableSpots = (guestList: Guest[]) => {
-      return guestList.reduce((acc, guest) => {
-        // Si es un invitado base (no adicional), solo contar declinados y confirmaciones parciales
-        if (baseGuestIds.has(guest.id)) {
-          if (guest.status === 'declined') {
-            return {
-              adults: acc.adults + guest.adults,
-              children: acc.children + guest.children,
-            };
-          }
-          if (guest.status === 'confirmed') {
-            // Calcular spots no confirmados por tipo
-            const adults = guest.confirmedAdults !== undefined ? guest.confirmedAdults : guest.adults;
-            const children = guest.confirmedChildren !== undefined ? guest.confirmedChildren : guest.children;
-            return {
-              adults: acc.adults + (guest.adults - adults),
-              children: acc.children + (guest.children - children),
-            };
-          }
-          return acc;
-        } else {
-          // Si es una familia adicional (nueva), RESTAR sus spots de los disponibles
-          if (guest.status === 'invited' || guest.status === 'confirmed') {
-            const adults = guest.status === 'confirmed' && guest.confirmedAdults !== undefined 
-              ? guest.confirmedAdults 
-              : guest.adults;
-            const children = guest.status === 'confirmed' && guest.confirmedChildren !== undefined 
-              ? guest.confirmedChildren 
-              : guest.children;
-            return {
-              adults: acc.adults - adults,
-              children: acc.children - children,
-            };
-          }
-          return acc;
-        }
-      }, { adults: 0, children: 0 });
+    // Usar la misma lógica que calculateSpots pero separado por tipo
+    const declinedSpots = guests.reduce((acc, guest) => {
+      if (guest.status === 'declined') {
+        // Solo contar adultos y niños, excluir bebés
+        return {
+          adults: acc.adults + guest.adults,
+          children: acc.children + guest.children,
+        };
+      }
+      return acc;
+    }, { adults: 0, children: 0 });
+
+    const partialDeclined = guests.reduce((acc, guest) => {
+      if (guest.status === 'confirmed') {
+        // Si hay confirmación parcial, los no confirmados son spots disponibles
+        // Solo contar adultos y niños, excluir bebés
+        const adults = guest.confirmedAdults !== undefined ? guest.confirmedAdults : guest.adults;
+        const children = guest.confirmedChildren !== undefined ? guest.confirmedChildren : guest.children;
+        return {
+          adults: acc.adults + (guest.adults - adults),
+          children: acc.children + (guest.children - children),
+        };
+      }
+      return acc;
+    }, { adults: 0, children: 0 });
+
+    const availableSpots = {
+      adults: declinedSpots.adults + partialDeclined.adults,
+      children: declinedSpots.children + partialDeclined.children,
     };
-    
-    const availableSpots = calculateAvailableSpots(guests);
     
     // Validar que no exceda los spots disponibles por tipo
     if (formData.adults > availableSpots.adults) {
@@ -272,44 +261,36 @@ export const GuestManagement = ({ guests, baseGuestIds, onGuestsChange }: GuestM
   const decliningGuest = decliningGuestId ? guests.find((g) => g.id === decliningGuestId) : null;
   
   // Calcular spots disponibles por tipo (adultos y niños por separado)
-  const availableSpots = guests.reduce((acc, guest) => {
-    // Si es un invitado base (no adicional), solo contar declinados y confirmaciones parciales
-    if (baseGuestIds.has(guest.id)) {
-      if (guest.status === 'declined') {
-        return {
-          adults: acc.adults + guest.adults,
-          children: acc.children + guest.children,
-        };
-      }
-      if (guest.status === 'confirmed') {
-        // Calcular spots no confirmados por tipo
-        const adults = guest.confirmedAdults !== undefined ? guest.confirmedAdults : guest.adults;
-        const children = guest.confirmedChildren !== undefined ? guest.confirmedChildren : guest.children;
-        return {
-          adults: acc.adults + (guest.adults - adults),
-          children: acc.children + (guest.children - children),
-        };
-      }
-      return acc;
-    } else {
-      // Si es una familia adicional (nueva), RESTAR sus spots de los disponibles
-      // porque estos spots ya fueron "usados" al agregar la familia
-      if (guest.status === 'invited' || guest.status === 'confirmed') {
-        const adults = guest.status === 'confirmed' && guest.confirmedAdults !== undefined 
-          ? guest.confirmedAdults 
-          : guest.adults;
-        const children = guest.status === 'confirmed' && guest.confirmedChildren !== undefined 
-          ? guest.confirmedChildren 
-          : guest.children;
-        return {
-          adults: acc.adults - adults,
-          children: acc.children - children,
-        };
-      }
-      // Si la familia adicional fue declinada, no restar (sus spots vuelven a estar disponibles)
-      return acc;
+  // Usar la misma lógica que calculateSpots pero separado por tipo
+  const declinedSpots = guests.reduce((acc, guest) => {
+    if (guest.status === 'declined') {
+      // Solo contar adultos y niños, excluir bebés
+      return {
+        adults: acc.adults + guest.adults,
+        children: acc.children + guest.children,
+      };
     }
+    return acc;
   }, { adults: 0, children: 0 });
+
+  const partialDeclined = guests.reduce((acc, guest) => {
+    if (guest.status === 'confirmed') {
+      // Si hay confirmación parcial, los no confirmados son spots disponibles
+      // Solo contar adultos y niños, excluir bebés
+      const adults = guest.confirmedAdults !== undefined ? guest.confirmedAdults : guest.adults;
+      const children = guest.confirmedChildren !== undefined ? guest.confirmedChildren : guest.children;
+      return {
+        adults: acc.adults + (guest.adults - adults),
+        children: acc.children + (guest.children - children),
+      };
+    }
+    return acc;
+  }, { adults: 0, children: 0 });
+
+  const availableSpots = {
+    adults: declinedSpots.adults + partialDeclined.adults,
+    children: declinedSpots.children + partialDeclined.children,
+  };
 
   return (
     <div>
