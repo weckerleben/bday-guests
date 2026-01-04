@@ -3,6 +3,8 @@ import CakeIcon from '@mui/icons-material/Cake';
 import SyncIcon from '@mui/icons-material/Sync';
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
+import DarkModeIcon from '@mui/icons-material/DarkMode';
+import LightModeIcon from '@mui/icons-material/LightMode';
 import { Guest, Pricing, GuestStatus } from './types';
 import { storage } from './utils/storage';
 import { syncService } from './utils/sync';
@@ -20,6 +22,7 @@ import { AUTO_SYNC_INTERVAL_MINUTES, AUTO_SYNC_CHECK_INTERVAL_MS } from './confi
 import './App.css';
 
 const ACTIVE_TAB_KEY = 'bday-active-tab';
+const DARK_MODE_KEY = 'bday-dark-mode';
 
 function App() {
   const [baseGuests] = useState(() => loadBaseGuests());
@@ -33,6 +36,21 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [syncError, setSyncError] = useState<string | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const saved = localStorage.getItem(DARK_MODE_KEY);
+    // Por defecto, modo oscuro (si no hay preferencia guardada, usar dark mode)
+    return saved === null ? true : saved === 'true';
+  });
+
+  useEffect(() => {
+    // Aplicar modo oscuro al body
+    if (isDarkMode) {
+      document.body.classList.add('dark');
+    } else {
+      document.body.classList.remove('dark');
+    }
+    localStorage.setItem(DARK_MODE_KEY, String(isDarkMode));
+  }, [isDarkMode]);
 
   useEffect(() => {
     // Sincronizar desde la nube al cargar la página si está configurado
@@ -173,6 +191,10 @@ function App() {
     setIsMobileMenuOpen(false); // Cerrar menú al cambiar de tab
   };
 
+  const toggleDarkMode = () => {
+    setIsDarkMode((prev) => !prev);
+  };
+
   return (
     <div className="app">
       <header className="app-header">
@@ -235,6 +257,14 @@ function App() {
                 <SyncIcon style={{ fontSize: '1rem', marginRight: '0.25rem' }} /> Sincronizar
               </button>
             </nav>
+            <button
+              className="theme-toggle-button"
+              onClick={toggleDarkMode}
+              aria-label={isDarkMode ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+              title={isDarkMode ? 'Modo oscuro' : 'Modo claro'}
+            >
+              {isDarkMode ? <LightModeIcon /> : <DarkModeIcon />}
+            </button>
             <SyncStatusIndicator />
           </div>
         </div>
