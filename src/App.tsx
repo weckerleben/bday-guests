@@ -410,7 +410,7 @@ function App() {
           </>
         )}
       </main>
-      <SwipeTutorial />
+      <SwipeTutorial show={activeTab === 'guests'} />
     </div>
   );
 }

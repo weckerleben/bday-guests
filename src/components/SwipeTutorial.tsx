@@ -1,11 +1,15 @@
 import { useState, useEffect } from 'react';
 import CheckIcon from '@mui/icons-material/Check';
-import CloseIcon from '@mui/icons-material/Close';
+import DeleteIcon from '@mui/icons-material/Delete';
 
-export const SwipeTutorial = () => {
+interface SwipeTutorialProps {
+  show?: boolean;
+}
+
+export const SwipeTutorial = ({ show = false }: SwipeTutorialProps) => {
   const [showTutorial, setShowTutorial] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [animationStep, setAnimationStep] = useState<'right' | 'left' | 'idle'>('idle');
+  const [animationStep, setAnimationStep] = useState<'reveal' | 'idle'>('idle');
 
   useEffect(() => {
     // Verificar si es móvil
@@ -21,14 +25,14 @@ export const SwipeTutorial = () => {
     checkMobile();
     window.addEventListener('resize', checkMobile);
 
-    // Mostrar tutorial cada vez que se carga la página en móvil
-    if (window.innerWidth <= 768) {
+    // Mostrar tutorial solo si show es true y es móvil
+    if (show && window.innerWidth <= 768) {
       // Esperar un poco para que la página cargue completamente
       const timer = setTimeout(() => {
         setShowTutorial(true);
         // Iniciar animación después de un breve delay
         setTimeout(() => {
-          setAnimationStep('right');
+          setAnimationStep('reveal');
         }, 500);
       }, 1000);
 
@@ -36,38 +40,27 @@ export const SwipeTutorial = () => {
         clearTimeout(timer);
         window.removeEventListener('resize', checkMobile);
       };
+    } else {
+      setShowTutorial(false);
     }
 
     return () => {
       window.removeEventListener('resize', checkMobile);
     };
-  }, []);
+  }, [show]);
 
   useEffect(() => {
     if (!showTutorial) return;
 
-    // Animación de swipe a la derecha
-    if (animationStep === 'right') {
+    // Animación de revelar acciones
+    if (animationStep === 'reveal') {
       const timer = setTimeout(() => {
         setAnimationStep('idle');
-        // Después de un momento, mostrar swipe a la izquierda
-        setTimeout(() => {
-          setAnimationStep('left');
-        }, 800);
-      }, 2000);
-
-      return () => clearTimeout(timer);
-    }
-
-    // Animación de swipe a la izquierda
-    if (animationStep === 'left') {
-      const timer = setTimeout(() => {
-        setAnimationStep('idle');
-        // Después de mostrar ambas animaciones, cerrar el tutorial
+        // Después de mostrar la animación, cerrar el tutorial
         setTimeout(() => {
           handleClose();
         }, 1000);
-      }, 2000);
+      }, 3000);
 
       return () => clearTimeout(timer);
     }
@@ -79,13 +72,8 @@ export const SwipeTutorial = () => {
 
   if (!showTutorial || !isMobile) return null;
 
-  const translateX = animationStep === 'right' ? 100 : animationStep === 'left' ? -100 : 0;
-  const bgColor = animationStep === 'right' ? '#22c55e' : animationStep === 'left' ? '#ef4444' : 'transparent';
-  const icon = animationStep === 'right' ? (
-    <CheckIcon style={{ fontSize: '2rem', color: '#ffffff' }} />
-  ) : animationStep === 'left' ? (
-    <CloseIcon style={{ fontSize: '2rem', color: '#ffffff' }} />
-  ) : null;
+  const translateX = animationStep === 'reveal' ? 128 : 0; // 128px = 2 botones de 64px
+  const revealProgress = animationStep === 'reveal' ? 1 : 0;
 
   return (
     <div
@@ -102,8 +90,8 @@ export const SwipeTutorial = () => {
         alignItems: 'center',
         justifyContent: 'center',
         padding: '1rem',
+        pointerEvents: 'none',
       }}
-      onClick={handleClose}
     >
       <div
         style={{
@@ -112,13 +100,12 @@ export const SwipeTutorial = () => {
           textAlign: 'center',
           color: 'white',
         }}
-        onClick={(e) => e.stopPropagation()}
       >
         <h2 style={{ marginBottom: '1rem', fontSize: '1.5rem' }}>
           Desliza para ver acciones
         </h2>
         <p style={{ marginBottom: '2rem', opacity: 0.9, fontSize: '0.95rem' }}>
-          Desliza la card para ver las acciones disponibles y toca el botón para ejecutarla
+          Desliza la card hacia la derecha para ver las acciones disponibles
         </p>
 
         {/* Card de ejemplo con animación */}
@@ -128,32 +115,53 @@ export const SwipeTutorial = () => {
             width: '100%',
             maxWidth: '300px',
             margin: '0 auto',
-            overflow: 'hidden',
-            borderRadius: '8px',
+            overflow: 'visible',
+            borderRadius: '0',
           }}
         >
-          {/* Fondo con ícono */}
-          {icon && (
-            <div
+          {/* Botones de acción que aparecen */}
+          <div
+            style={{
+              position: 'absolute',
+              left: 0,
+              top: 0,
+              bottom: 0,
+              display: 'flex',
+              flexDirection: 'row',
+              opacity: revealProgress,
+              transition: 'opacity 0.3s ease',
+              zIndex: 0,
+            }}
+          >
+            <button
               style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                backgroundColor: bgColor,
+                width: '64px',
+                height: '100%',
+                backgroundColor: '#10b981',
+                border: 'none',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: animationStep === 'right' ? 'flex-start' : 'flex-end',
-                paddingLeft: animationStep === 'right' ? '1.5rem' : '0',
-                paddingRight: animationStep === 'right' ? '0' : '1.5rem',
-                opacity: Math.abs(translateX) / 100,
-                zIndex: 0,
+                justifyContent: 'center',
+                borderRadius: '0',
               }}
             >
-              {icon}
-            </div>
-          )}
+              <CheckIcon style={{ fontSize: '1.5rem', color: '#ffffff' }} />
+            </button>
+            <button
+              style={{
+                width: '64px',
+                height: '100%',
+                backgroundColor: '#ef4444',
+                border: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: '0',
+              }}
+            >
+              <DeleteIcon style={{ fontSize: '1.5rem', color: '#ffffff' }} />
+            </button>
+          </div>
 
           {/* Card movible */}
           <div
@@ -166,47 +174,28 @@ export const SwipeTutorial = () => {
           >
             <div
               style={{
-                background: '#f9fafb',
-                border: '1px solid #e5e7eb',
-                borderRadius: '8px',
-                padding: '1rem',
+                background: 'white',
+                border: 'none',
+                borderBottom: '1px solid #e5e7eb',
+                borderRadius: '0',
+                padding: '0.875rem 1rem',
               }}
             >
-              <div style={{ marginBottom: '0.75rem', paddingBottom: '0.75rem', borderBottom: '1px solid #e5e7eb' }}>
-                <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600, color: '#111827' }}>
+              <div style={{ marginBottom: '0.5rem' }}>
+                <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600, color: '#1f2937' }}>
                   Ejemplo de Familia
                 </h3>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
-                  <span style={{ color: '#6b7280' }}>Adultos:</span>
-                  <span style={{ color: '#111827' }}>2</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
-                  <span style={{ color: '#6b7280' }}>Niños:</span>
-                  <span style={{ color: '#111827' }}>1</span>
-                </div>
+              <div style={{ display: 'flex', gap: '0.5rem', fontSize: '0.8125rem' }}>
+                <span style={{ color: '#6b7280' }}>👤</span>
+                <span style={{ color: '#1f2937', fontWeight: 500 }}>2</span>
+                <span style={{ color: '#e5e7eb', margin: '0 0.125rem' }}>·</span>
+                <span style={{ color: '#6b7280' }}>👥</span>
+                <span style={{ color: '#1f2937', fontWeight: 500 }}>1</span>
               </div>
             </div>
           </div>
         </div>
-
-        <button
-          onClick={handleClose}
-          style={{
-            marginTop: '2rem',
-            padding: '0.75rem 1.5rem',
-            backgroundColor: 'white',
-            color: '#667eea',
-            border: 'none',
-            borderRadius: '6px',
-            fontSize: '1rem',
-            fontWeight: 600,
-            cursor: 'pointer',
-          }}
-        >
-          Entendido
-        </button>
       </div>
     </div>
   );
