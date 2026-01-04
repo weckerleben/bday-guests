@@ -14,6 +14,7 @@ interface GuestManagementProps {
 }
 
 export const GuestManagement = ({ guests, baseGuestIds, onGuestsChange }: GuestManagementProps) => {
+  const [openCardId, setOpenCardId] = useState<string | null>(null);
   const [confirmingGuest, setConfirmingGuest] = useState<Guest | null>(null);
   const [decliningGuestId, setDecliningGuestId] = useState<string | null>(null);
   const [deletingGuestId, setDeletingGuestId] = useState<string | null>(null);
@@ -371,6 +372,9 @@ export const GuestManagement = ({ guests, baseGuestIds, onGuestsChange }: GuestM
           onDecline={handleDecline}
           onDelete={handleDelete}
           showActions={true}
+          openCardId={openCardId}
+          onOpenCard={(id) => setOpenCardId(id)}
+          onCloseCard={() => setOpenCardId(null)}
           headerAction={
             (availableSpots.adults > 0 || availableSpots.children > 0) ? (
               <button
@@ -402,6 +406,9 @@ export const GuestManagement = ({ guests, baseGuestIds, onGuestsChange }: GuestM
           onDecline={handleDecline}
           onDelete={handleDelete}
           showActions={true}
+          openCardId={openCardId}
+          onOpenCard={(id) => setOpenCardId(id)}
+          onCloseCard={() => setOpenCardId(null)}
         />
 
         <GuestList
@@ -410,6 +417,9 @@ export const GuestManagement = ({ guests, baseGuestIds, onGuestsChange }: GuestM
           highlightedGuestId={highlightedGuestId}
           onReinvite={handleReinvite}
           showActions={true}
+          openCardId={openCardId}
+          onOpenCard={(id) => setOpenCardId(id)}
+          onCloseCard={() => setOpenCardId(null)}
         />
       </div>
     </div>

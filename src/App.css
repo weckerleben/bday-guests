@@ -611,14 +611,11 @@ body {
   width: 100%;
   overflow: hidden;
   border-radius: 0;
+  background: white;
 }
 
 @media (max-width: 768px) {
   .swipeable-guest-card-wrapper {
-    border-radius: 0;
-  }
-  
-  .swipe-action-background {
     border-radius: 0;
   }
 }
@@ -626,10 +623,54 @@ body {
 .swipeable-guest-card {
   position: relative;
   width: 100%;
+  background: white;
 }
 
-.swipe-action-background {
-  border-radius: 8px;
+.swipe-action-left,
+.swipe-action-right {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  z-index: 0;
+  transition: opacity 0.2s ease, transform 0.3s ease-out;
+  min-width: 100px;
+}
+
+.swipe-action-left {
+  left: 0;
+  padding: 0;
+  justify-content: flex-start;
+  width: auto;
+  display: flex;
+  flex-direction: row;
+}
+
+.swipe-action-button {
+  width: 64px;
+  height: 100%;
+  border-radius: 0;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: white;
+  margin: 0;
+  flex-shrink: 0;
+  box-shadow: none;
+  transition: opacity 0.1s ease;
+  gap: 0.25rem;
+}
+
+.swipe-action-button:active {
+  opacity: 0.7;
+}
+
+.swipe-action-button svg {
+  font-size: 1.5rem;
 }
 
 .guest-card {
@@ -1042,13 +1083,17 @@ body {
   }
 
   .card {
-    padding: 1rem;
-    margin-bottom: 0.75rem;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.5rem;
     border-radius: 0;
     border: none;
     border-bottom: 1px solid #e5e7eb;
     box-shadow: none;
     background: white;
+  }
+
+  .card-section-confirmed {
+    background: #f9fafb;
   }
 
   .card:last-child {
@@ -1057,6 +1102,44 @@ body {
 
   .card:hover {
     box-shadow: none;
+  }
+
+  .card-header-section {
+    margin-bottom: 0.5rem;
+  }
+
+  .card-title-section {
+    font-size: 0.9375rem;
+    margin: 0;
+    font-weight: 600;
+    color: #1f2937;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .section-icon {
+    font-size: 1.125rem !important;
+    flex-shrink: 0;
+  }
+
+  .section-icon-invited {
+    color: #6b7280;
+  }
+
+  .section-icon-confirmed {
+    color: #10b981;
+  }
+
+  .section-icon-declined {
+    color: #ef4444;
+  }
+
+  .card-title-count {
+    font-weight: 400;
+    color: #6b7280;
+    font-size: 0.875em;
   }
 
   .card h2 {
@@ -1270,10 +1353,11 @@ body {
 
   /* Estilos de cards y botones en móvil */
   .guest-card {
-    padding: 1rem;
+    padding: 0.625rem 1rem;
     background: white;
     border: none;
-    border-bottom: 1px solid #e5e7eb;
+    border-left: 3px solid transparent;
+    border-bottom: 1px solid #f3f4f6;
     border-radius: 0;
   }
 
@@ -1282,20 +1366,90 @@ body {
   }
 
   .guest-card-header {
-    flex-direction: row;
-    align-items: center;
+    margin-bottom: 0.375rem;
+    padding-bottom: 0;
+    border-bottom: none;
+  }
+
+  .guest-card-title-row {
+    display: flex;
+    align-items: baseline;
     justify-content: space-between;
     gap: 0.5rem;
-    margin-bottom: 0.75rem;
-    padding-bottom: 0.75rem;
-    border-bottom: 1px solid #f3f4f6;
+    flex-wrap: wrap;
   }
 
   .guest-card-header h3 {
-    font-size: 1rem;
+    font-size: 0.9375rem;
     margin: 0;
     font-weight: 600;
-    color: #1f2937;
+    color: #111827;
+    flex: 1;
+    min-width: 0;
+    line-height: 1.3;
+  }
+
+  .guest-card-total-badge {
+    font-size: 0.75rem;
+    color: #6b7280;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .guest-card-body {
+    margin-bottom: 0.375rem;
+  }
+
+  .guest-card-chips {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+    font-size: 0.75rem;
+  }
+
+  .guest-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .guest-chip-icon {
+    font-size: 0.875rem !important;
+    color: #9ca3af;
+    flex-shrink: 0;
+  }
+
+  .guest-chip-label {
+    color: #9ca3af;
+  }
+
+  .guest-chip-value {
+    color: #374151;
+    font-weight: 500;
+  }
+
+  .guest-chip-partial {
+    color: #9ca3af;
+    font-weight: 400;
+  }
+
+  .guest-chip-separator {
+    color: #e5e7eb;
+    margin: 0 0.125rem;
+  }
+
+  /* Bordes de color según estado - solo en la card */
+  .guest-card-invited {
+    border-left: 3px solid #d1d5db;
+  }
+
+  .guest-card-confirmed {
+    border-left: 3px solid #10b981;
+  }
+
+  .guest-card-declined {
+    border-left: 3px solid #ef4444;
   }
 
   .guest-card-body {
@@ -1315,41 +1469,52 @@ body {
   }
 
   .guest-card-actions {
-    flex-direction: row;
-    gap: 0.5rem;
-    justify-content: stretch;
-    margin-top: 0.75rem;
-    padding-top: 0.75rem;
-    border-top: 1px solid #f3f4f6;
+    display: none !important;
   }
 
-  .guest-card-actions .button {
-    flex: 1;
-    min-width: 0;
-    padding: 0.6rem 0.5rem;
-    min-height: 44px;
+  .button-compact {
+    padding: 0.375rem 0.625rem;
+    min-height: 32px;
     font-weight: 500;
+    font-size: 0.75rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    border-radius: 6px;
+    flex-shrink: 0;
   }
 
-  .guest-card-actions .button-icon {
-    min-width: auto;
-    width: auto;
-    height: auto;
-    padding: 0.5rem;
+  .button-compact.button-success {
+    background: #10b981;
   }
 
-  .guest-card-actions .button-icon svg {
-    width: 20px;
-    height: 20px;
+  .button-compact.button-danger {
+    background: #ef4444;
   }
 
-  .guest-card-actions .button-with-text {
-    gap: 0.5rem;
+  .button-compact.button-primary {
+    background: #667eea;
   }
 
-  .guest-card-actions .button-text {
-    display: inline;
-    font-size: 0.875rem;
+  .button-compact.button-secondary {
+    background: transparent;
+    color: #6b7280;
+    border: 1px solid #e5e7eb;
+  }
+
+  .button-compact.button-secondary:active:not(:disabled) {
+    background: #f3f4f6;
+  }
+
+  .button-compact svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+  }
+
+  .button-compact span {
+    white-space: nowrap;
   }
 }
 

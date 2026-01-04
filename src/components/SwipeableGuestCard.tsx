@@ -1,27 +1,45 @@
-import { useState, useRef, ReactNode } from 'react';
+import { useState, useRef, ReactNode, useEffect } from 'react';
 import { Guest } from '../types';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
+import EditIcon from '@mui/icons-material/Edit';
+import UndoIcon from '@mui/icons-material/Undo';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 interface SwipeableGuestCardProps {
   guest: Guest;
   children: ReactNode;
   onConfirm?: (id: string) => void;
   onDecline?: (id: string) => void;
+  onReinvite?: (id: string) => void;
+  onCancelConfirmation?: (id: string) => void;
+  onDelete?: (id: string) => void;
+  baseGuestIds?: Set<string>;
   className?: string;
+  isOpen?: boolean;
+  onOpen?: (id: string) => void;
+  onClose?: () => void;
 }
 
-const SWIPE_THRESHOLD = 60; // Distancia mínima en píxeles para considerar un swipe completado
-const SWIPE_VELOCITY_THRESHOLD = 0.15; // Velocidad mínima para considerar un swipe rápido (muy reducido)
-const HORIZONTAL_THRESHOLD = 10; // Distancia mínima horizontal para considerar movimiento horizontal (muy reducido)
-const HORIZONTAL_RATIO = 1.1; // Ratio mínimo horizontal/vertical para considerar swipe horizontal (muy reducido)
+const SWIPE_THRESHOLD = 50; // Distancia mínima para considerar swipe válido
+const SWIPE_VELOCITY_THRESHOLD = 0.15;
+const HORIZONTAL_THRESHOLD = 10;
+const HORIZONTAL_RATIO = 1.1;
+const BUTTON_WIDTH = 64; // Ancho de cada botón en píxeles
 
 export const SwipeableGuestCard = ({
   guest,
   children,
   onConfirm,
   onDecline,
+  onReinvite,
+  onCancelConfirmation,
+  onDelete,
+  baseGuestIds,
   className = '',
+  isOpen = false,
+  onOpen,
+  onClose,
 }: SwipeableGuestCardProps) => {
   const [translateX, setTranslateX] = useState(0);
   const [isSwiping, setIsSwiping] = useState(false);
@@ -30,154 +48,239 @@ export const SwipeableGuestCard = ({
   const touchStartTime = useRef<number | null>(null);
   const isHorizontalSwipe = useRef<boolean | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
+  const lastDirection = useRef<'left' | 'right' | null>(null);
+  const translateXRef = useRef(0);
 
-  // Determinar qué acciones están disponibles
-  const canConfirm = onConfirm && (guest.status === 'invited' || guest.status === 'confirmed');
-  const canDecline = onDecline && (guest.status === 'invited' || guest.status === 'confirmed');
+  // Sincronizar con estado externo (isOpen)
+  useEffect(() => {
+    if (!isOpen) {
+      translateXRef.current = 0;
+      setTranslateX(0);
+      lastDirection.current = null;
+    }
+  }, [isOpen]);
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    const touch = e.touches[0];
-    touchStartX.current = touch.clientX;
-    touchStartY.current = touch.clientY;
-    touchStartTime.current = Date.now();
-    isHorizontalSwipe.current = null;
+  // Determinar acciones disponibles según estado
+  const getLeftActions = () => {
+    const actions = [];
+    if (guest.status === 'invited' && onConfirm) {
+      actions.push({
+        icon: <CheckIcon />,
+        label: 'Confirmar',
+        action: () => onConfirm(guest.id),
+        color: '#10b981',
+      });
+    } else if (guest.status === 'confirmed' && onConfirm) {
+      actions.push({
+        icon: <EditIcon />,
+        label: 'Editar',
+        action: () => onConfirm(guest.id),
+        color: '#667eea',
+      });
+    } else if (guest.status === 'declined' && onReinvite) {
+      actions.push({
+        icon: <CheckIcon />,
+        label: 'Reinvitar',
+        action: () => onReinvite(guest.id),
+        color: '#10b981',
+      });
+    }
+    return actions;
   };
 
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (touchStartX.current === null || touchStartY.current === null) return;
-
-    const touch = e.touches[0];
-    const deltaX = touch.clientX - touchStartX.current;
-    const deltaY = touch.clientY - touchStartY.current;
-    const absX = Math.abs(deltaX);
-    const absY = Math.abs(deltaY);
-
-    // Determinar si es un movimiento principalmente horizontal o vertical
-    if (isHorizontalSwipe.current === null) {
-      // Si el movimiento horizontal es mayor que el vertical y tiene suficiente distancia, es un swipe horizontal
-      // Usamos umbrales más permisivos para hacer el swipe más fácil de activar
-      // También consideramos si el movimiento horizontal es significativo aunque el vertical también lo sea
-      const isHorizontal = absX > absY * HORIZONTAL_RATIO && absX > HORIZONTAL_THRESHOLD;
-      // También activar si el movimiento horizontal es suficientemente grande (más permisivo)
-      const isSignificantHorizontal = absX > 25 && absX > absY;
-      
-      isHorizontalSwipe.current = isHorizontal || isSignificantHorizontal;
-      
-      // Si es vertical, no procesar y permitir scroll
-      if (!isHorizontalSwipe.current) return;
+  const getRightActions = () => {
+    const actions = [];
+    if ((guest.status === 'invited' || guest.status === 'confirmed') && onDecline) {
+      actions.push({
+        icon: <CloseIcon />,
+        label: 'Declinar',
+        action: () => onDecline(guest.id),
+        color: '#ef4444',
+      });
     }
-    
-    // Si ya determinamos que es horizontal, procesar el swipe
-    if (isHorizontalSwipe.current) {
-      // Solo permitir swipe horizontal si hay acciones disponibles
-      if (!canConfirm && deltaX > 0) {
-        setTranslateX(0);
-        return;
-      }
-      if (!canDecline && deltaX < 0) {
-        setTranslateX(0);
-        return;
-      }
-
-      setIsSwiping(true);
-      setTranslateX(deltaX);
+    if (guest.status === 'confirmed' && onCancelConfirmation) {
+      actions.push({
+        icon: <UndoIcon />,
+        label: 'Cancelar',
+        action: () => onCancelConfirmation(guest.id),
+        color: '#6b7280',
+      });
     }
+    if (onDelete && baseGuestIds && !baseGuestIds.has(guest.id)) {
+      actions.push({
+        icon: <DeleteIcon />,
+        label: 'Eliminar',
+        action: () => onDelete(guest.id),
+        color: '#ef4444',
+      });
+    }
+    return actions;
   };
 
-  const handleTouchEnd = () => {
-    if (touchStartX.current === null || touchStartTime.current === null) {
-      setIsSwiping(false);
+  const leftActions = getLeftActions();
+  const rightActions = getRightActions();
+
+  // En WhatsApp, todas las acciones están en el lado izquierdo cuando deslizas a la derecha
+  // Combinamos todas las acciones disponibles en un solo array
+  const allActions = [...leftActions, ...rightActions];
+
+  // Agregar event listeners manualmente con { passive: false } para touchmove
+  useEffect(() => {
+    const element = cardRef.current;
+    if (!element) return;
+
+    const touchStartHandler = (e: TouchEvent) => {
+      // Cerrar otras cards si hay una abierta
+      if (onClose && !isOpen) {
+        onClose();
+      }
+      
+      const touch = e.touches[0];
+      touchStartX.current = touch.clientX;
+      touchStartY.current = touch.clientY;
+      touchStartTime.current = Date.now();
       isHorizontalSwipe.current = null;
-      return;
-    }
+      lastDirection.current = null;
+    };
 
-    // Solo procesar si fue un movimiento horizontal
-    if (!isHorizontalSwipe.current) {
+    const touchMoveHandler = (e: TouchEvent) => {
+      if (touchStartX.current === null || touchStartY.current === null) return;
+
+      const touch = e.touches[0];
+      const deltaX = touch.clientX - touchStartX.current;
+      const deltaY = touch.clientY - touchStartY.current;
+      const absX = Math.abs(deltaX);
+      const absY = Math.abs(deltaY);
+
+      if (isHorizontalSwipe.current === null) {
+        const isHorizontal = absX > absY * HORIZONTAL_RATIO && absX > HORIZONTAL_THRESHOLD;
+        const isSignificantHorizontal = absX > 25 && absX > absY;
+        isHorizontalSwipe.current = isHorizontal || isSignificantHorizontal;
+        
+        if (!isHorizontalSwipe.current) return;
+      }
+      
+      if (isHorizontalSwipe.current) {
+        e.preventDefault(); // Ahora funciona porque el listener no es pasivo
+        
+        // Calcular el espacio necesario según la cantidad de botones
+        const revealThreshold = allActions.length * BUTTON_WIDTH;
+        
+        // Limitar el swipe según las acciones disponibles
+        const maxRight = allActions.length > 0 ? revealThreshold : 0;
+        
+        let clampedX = deltaX;
+        if (deltaX > 0 && deltaX > maxRight) {
+          clampedX = maxRight;
+          lastDirection.current = 'right';
+        } else if (deltaX < 0) {
+          clampedX = 0;
+          lastDirection.current = null;
+        } else {
+          if (deltaX > 0) lastDirection.current = 'right';
+        }
+
+        setIsSwiping(true);
+        translateXRef.current = clampedX;
+        setTranslateX(clampedX);
+      }
+    };
+
+    const touchEndHandler = () => {
+      if (touchStartX.current === null || touchStartTime.current === null) {
+        setIsSwiping(false);
+        isHorizontalSwipe.current = null;
+        return;
+      }
+
+      if (!isHorizontalSwipe.current) {
+        setIsSwiping(false);
+        isHorizontalSwipe.current = null;
+        touchStartX.current = null;
+        touchStartY.current = null;
+        touchStartTime.current = null;
+        return;
+      }
+
+      const deltaX = translateXRef.current;
+      const deltaTime = Date.now() - touchStartTime.current;
+      const velocity = deltaTime > 0 ? Math.abs(deltaX) / deltaTime : 0;
+      const isSwipe = Math.abs(deltaX) > SWIPE_THRESHOLD || velocity > SWIPE_VELOCITY_THRESHOLD;
+
+      // Calcular el espacio necesario según la cantidad de botones
+      const revealThreshold = allActions.length * BUTTON_WIDTH;
+
+      if (!isSwipe) {
+        translateXRef.current = 0;
+        setTranslateX(0);
+        if (onClose) onClose();
+      } else {
+        if (deltaX > 0 && allActions.length > 0) {
+          translateXRef.current = revealThreshold;
+          setTranslateX(revealThreshold);
+          if (onOpen) onOpen(guest.id);
+        } else {
+          translateXRef.current = 0;
+          setTranslateX(0);
+          if (onClose) onClose();
+        }
+      }
+
       setIsSwiping(false);
       isHorizontalSwipe.current = null;
       touchStartX.current = null;
       touchStartY.current = null;
       touchStartTime.current = null;
-      return;
-    }
+    };
 
-    const deltaX = translateX;
-    const deltaTime = Date.now() - touchStartTime.current;
-    const velocity = deltaTime > 0 ? Math.abs(deltaX) / deltaTime : 0;
+    element.addEventListener('touchstart', touchStartHandler, { passive: true });
+    element.addEventListener('touchmove', touchMoveHandler, { passive: false });
+    element.addEventListener('touchend', touchEndHandler, { passive: true });
 
-    // Determinar si es un swipe válido (umbrales más permisivos)
-    // Aceptar si se supera la distancia mínima O si hay suficiente velocidad
-    const isSwipe = Math.abs(deltaX) > SWIPE_THRESHOLD || velocity > SWIPE_VELOCITY_THRESHOLD;
+    return () => {
+      element.removeEventListener('touchstart', touchStartHandler);
+      element.removeEventListener('touchmove', touchMoveHandler);
+      element.removeEventListener('touchend', touchEndHandler);
+    };
+  }, [allActions.length, guest.id, isOpen, onClose, onOpen]);
 
-    if (isSwipe) {
-      if (deltaX > 0 && canConfirm) {
-        // Swipe a la derecha = confirmar
-        onConfirm?.(guest.id);
-      } else if (deltaX < 0 && canDecline) {
-        // Swipe a la izquierda = declinar
-        onDecline?.(guest.id);
-      }
-    }
-
-    // Reset
-    setTranslateX(0);
-    setIsSwiping(false);
-    isHorizontalSwipe.current = null;
-    touchStartX.current = null;
-    touchStartY.current = null;
-    touchStartTime.current = null;
+  const handleActionClick = (action: () => void, e: React.MouseEvent | React.TouchEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    action();
+    setTranslateX(0); // Cerrar después de la acción
+    if (onClose) onClose();
   };
 
-  // Determinar el color de fondo y el ícono según la dirección del swipe
-  const getSwipeAction = () => {
-    if (!isSwiping || translateX === 0) return null;
-    
-    if (translateX > 0 && canConfirm) {
-      // Swipe a la derecha (confirmar) - verde
-      return {
-        color: '#22c55e',
-        icon: <CheckIcon style={{ fontSize: '2rem', color: '#ffffff' }} />,
-      };
-    } else if (translateX < 0 && canDecline) {
-      // Swipe a la izquierda (declinar) - rojo
-      return {
-        color: '#ef4444',
-        icon: <CloseIcon style={{ fontSize: '2rem', color: '#ffffff' }} />,
-      };
-    }
-    
-    return null;
-  };
-
-  const swipeAction = getSwipeAction();
-  const swipeOpacity = swipeAction 
-    ? Math.min(Math.abs(translateX) / SWIPE_THRESHOLD, 1) 
-    : 0;
+  // Calcular el espacio necesario según la cantidad de botones
+  const revealThreshold = allActions.length * BUTTON_WIDTH;
+  const revealProgress = revealThreshold > 0 ? Math.min(Math.abs(translateX) / revealThreshold, 1) : 0;
+  // En WhatsApp: deslizar a la DERECHA (translateX > 0) muestra todas las acciones a la IZQUIERDA
+  const showingActions = translateX > 0 && allActions.length > 0;
 
   return (
     <div className={`swipeable-guest-card-wrapper ${className}`.trim()}>
-      {/* Fondo con ícono (como en Gmail) */}
-      {swipeAction && (
-        <div
-          className="swipe-action-background"
+      {/* Todas las acciones en el lado izquierdo (estilo WhatsApp) */}
+      {allActions.length > 0 && (
+        <div 
+          className="swipe-action-left"
           style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: swipeAction.color,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: translateX > 0 ? 'flex-start' : 'flex-end',
-            paddingLeft: translateX > 0 ? '1.5rem' : '0',
-            paddingRight: translateX > 0 ? '0' : '1.5rem',
-            opacity: swipeOpacity,
-            transition: isSwiping ? 'none' : 'opacity 0.3s ease-out',
-            zIndex: 0,
+            opacity: showingActions ? revealProgress : 0,
+            pointerEvents: showingActions ? 'auto' : 'none',
           }}
         >
-          {swipeAction.icon}
+          {allActions.map((action, index) => (
+            <button
+              key={index}
+              className="swipe-action-button"
+              onClick={(e) => handleActionClick(action.action, e)}
+              onTouchEnd={(e) => handleActionClick(action.action, e)}
+              style={{ backgroundColor: action.color }}
+              aria-label={action.label}
+            >
+              {action.icon}
+            </button>
+          ))}
         </div>
       )}
       
@@ -185,9 +288,6 @@ export const SwipeableGuestCard = ({
       <div
         ref={cardRef}
         className="swipeable-guest-card"
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
         style={{
           position: 'relative',
           transform: `translateX(${translateX}px)`,
@@ -200,4 +300,3 @@ export const SwipeableGuestCard = ({
     </div>
   );
 };
-

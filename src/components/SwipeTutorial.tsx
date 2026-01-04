@@ -115,10 +115,10 @@ export const SwipeTutorial = () => {
         onClick={(e) => e.stopPropagation()}
       >
         <h2 style={{ marginBottom: '1rem', fontSize: '1.5rem' }}>
-          Desliza para confirmar o declinar
+          Desliza para ver acciones
         </h2>
         <p style={{ marginBottom: '2rem', opacity: 0.9, fontSize: '0.95rem' }}>
-          Desliza la card hacia la derecha para confirmar o hacia la izquierda para declinar
+          Desliza la card para ver las acciones disponibles y toca el botón para ejecutarla
         </p>
 
         {/* Card de ejemplo con animación */}

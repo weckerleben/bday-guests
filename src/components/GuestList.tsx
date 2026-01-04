@@ -1,9 +1,16 @@
+import { useState } from 'react';
 import { Guest } from '../types';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 import EditIcon from '@mui/icons-material/Edit';
 import UndoIcon from '@mui/icons-material/Undo';
 import DeleteIcon from '@mui/icons-material/Delete';
+import PersonIcon from '@mui/icons-material/Person';
+import GroupIcon from '@mui/icons-material/Group';
+import ChildCareIcon from '@mui/icons-material/ChildCare';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CancelIcon from '@mui/icons-material/Cancel';
 import { SwipeableGuestCard } from './SwipeableGuestCard';
 
 interface GuestListProps {
@@ -32,6 +39,9 @@ export const GuestList = ({
   onDelete,
   showActions,
   headerAction,
+  openCardId = null,
+  onOpenCard,
+  onCloseCard,
 }: GuestListProps) => {
   const isEmpty = guests.length === 0;
 
@@ -53,20 +63,39 @@ export const GuestList = ({
     return 'No hay elementos';
   };
 
+  const getSectionIcon = () => {
+    if (title.includes('Invitados') && !title.includes('Confirmados') && !title.includes('Declinados')) {
+      return <AccessTimeIcon className="section-icon section-icon-invited" />;
+    }
+    if (title.includes('Confirmados')) {
+      return <CheckCircleIcon className="section-icon section-icon-confirmed" />;
+    }
+    if (title.includes('Declinados')) {
+      return <CancelIcon className="section-icon section-icon-declined" />;
+    }
+    return null;
+  };
+
   return (
-    <div className="card">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: title ? '1rem' : '0', flexWrap: 'wrap', gap: '0.75rem' }}>
+    <div className={`card ${title.includes('Confirmados') ? 'card-section-confirmed' : ''}`}>
+      <div className="card-header-section">
         {title && (
-          <h2 style={{ flex: '1 1 auto', margin: 0 }}>
-            {title} {!isEmpty && `(${guests.length} ${guests.length === 1 ? 'familia' : 'familias'} - ${totalGuests} ${totalGuests === 1 ? 'invitado' : 'invitados'})`}
+          <h2 className="card-title-section">
+            {getSectionIcon()}
+            <span>{title}</span>
+            {!isEmpty && (
+              <span className="card-title-count">
+                {guests.length} {guests.length === 1 ? 'familia' : 'familias'} • {totalGuests} {totalGuests === 1 ? 'invitado' : 'invitados'}
+              </span>
+            )}
           </h2>
         )}
-        {headerAction && (
-          <div style={{ flex: '0 0 auto' }}>
-            {headerAction}
-          </div>
-        )}
       </div>
+      {headerAction && (
+        <div style={{ marginBottom: '0.5rem' }}>
+          {headerAction}
+        </div>
+      )}
       
       {isEmpty && (
         <div style={{
@@ -221,7 +250,6 @@ export const GuestList = ({
       {!isEmpty && (
       <div className="guest-cards-mobile">
         {guests.map((guest) => {
-          const total = guest.adults + guest.children + guest.babies;
           const displayAdults = guest.status === 'confirmed' && guest.confirmedAdults !== undefined 
             ? guest.confirmedAdults 
             : guest.adults;
@@ -241,46 +269,47 @@ export const GuestList = ({
           const cardContent = (
             <div 
               id={`guest-${guest.id}`}
-              className={`guest-card ${isHighlighted ? 'guest-highlighted' : ''}`}
+              className={`guest-card guest-card-${guest.status} ${isHighlighted ? 'guest-highlighted' : ''}`}
             >
               <div className="guest-card-header">
-                <h3>{guest.familyName}</h3>
+                <div className="guest-card-title-row">
+                  <h3>{guest.familyName}</h3>
+                  <span className="guest-card-total-badge">{displayTotal} {displayTotal === 1 ? 'invitado' : 'invitados'}</span>
+                </div>
               </div>
               <div className="guest-card-body">
-                <div className="guest-card-row">
-                  <span className="guest-card-label">Adultos:</span>
-                  <span className="guest-card-value">
-                    {displayAdults}
-                    {isPartial && displayAdults < guest.adults && (
-                      <span style={{ color: '#6b7280', fontSize: '0.75rem' }}> / {guest.adults}</span>
-                    )}
+                <div className="guest-card-chips">
+                  <span className="guest-chip">
+                    <PersonIcon className="guest-chip-icon" />
+                    <span className="guest-chip-label">Adultos</span>
+                    <span className="guest-chip-value">
+                      {displayAdults}
+                      {isPartial && displayAdults < guest.adults && (
+                        <span className="guest-chip-partial">/{guest.adults}</span>
+                      )}
+                    </span>
                   </span>
-                </div>
-                <div className="guest-card-row">
-                  <span className="guest-card-label">Niños:</span>
-                  <span className="guest-card-value">
-                    {displayChildren}
-                    {isPartial && displayChildren < guest.children && (
-                      <span style={{ color: '#6b7280', fontSize: '0.75rem' }}> / {guest.children}</span>
-                    )}
+                  <span className="guest-chip-separator">•</span>
+                  <span className="guest-chip">
+                    <GroupIcon className="guest-chip-icon" />
+                    <span className="guest-chip-label">Niños</span>
+                    <span className="guest-chip-value">
+                      {displayChildren}
+                      {isPartial && displayChildren < guest.children && (
+                        <span className="guest-chip-partial">/{guest.children}</span>
+                      )}
+                    </span>
                   </span>
-                </div>
-                <div className="guest-card-row">
-                  <span className="guest-card-label">Bebés:</span>
-                  <span className="guest-card-value">
-                    {displayBabies}
-                    {isPartial && displayBabies < guest.babies && (
-                      <span style={{ color: '#6b7280', fontSize: '0.75rem' }}> / {guest.babies}</span>
-                    )}
-                  </span>
-                </div>
-                <div className="guest-card-row" style={{ fontWeight: 'bold', marginTop: '0.35rem', paddingTop: '0.35rem', borderTop: '1px solid #e5e7eb', fontSize: '0.9rem' }}>
-                  <span className="guest-card-label">Total:</span>
-                  <span className="guest-card-value">
-                    {displayTotal}
-                    {isPartial && displayTotal < total && (
-                      <span style={{ color: '#6b7280', fontSize: '0.8rem' }}> / {total}</span>
-                    )}
+                  <span className="guest-chip-separator">•</span>
+                  <span className="guest-chip">
+                    <ChildCareIcon className="guest-chip-icon" />
+                    <span className="guest-chip-label">Bebés</span>
+                    <span className="guest-chip-value">
+                      {displayBabies}
+                      {isPartial && displayBabies < guest.babies && (
+                        <span className="guest-chip-partial">/{guest.babies}</span>
+                      )}
+                    </span>
                   </span>
                 </div>
               </div>
@@ -288,68 +317,68 @@ export const GuestList = ({
                 <div className="guest-card-actions">
                   {onConfirm && guest.status === 'invited' && (
                     <button
-                      className="button button-success button-small button-icon button-with-text"
+                      className="button button-success button-compact"
                       onClick={() => onConfirm(guest.id)}
                       title="Confirmar"
                       aria-label="Confirmar invitación"
                     >
                       <CheckIcon />
-                      <span className="button-text">Confirmar</span>
+                      <span>Confirmar</span>
                     </button>
                   )}
                   {onConfirm && guest.status === 'confirmed' && (
                     <button
-                      className="button button-primary button-small button-icon button-with-text"
+                      className="button button-primary button-compact"
                       onClick={() => onConfirm(guest.id)}
                       title="Editar"
                       aria-label="Editar confirmación"
                     >
                       <EditIcon />
-                      <span className="button-text">Editar</span>
+                      <span>Editar</span>
                     </button>
                   )}
                   {onDecline && (guest.status === 'invited' || guest.status === 'confirmed') && (
                     <button
-                      className="button button-danger button-small button-icon button-with-text"
+                      className="button button-danger button-compact"
                       onClick={() => onDecline(guest.id)}
                       title="Declinar"
                       aria-label="Declinar invitación"
                     >
                       <CloseIcon />
-                      <span className="button-text">Declinar</span>
+                      <span>Declinar</span>
                     </button>
                   )}
                   {onCancelConfirmation && guest.status === 'confirmed' && (
                     <button
-                      className="button button-secondary button-small button-icon button-with-text"
+                      className="button button-secondary button-compact"
                       onClick={() => onCancelConfirmation(guest.id)}
                       title="Cancelar confirmación"
                       aria-label="Cancelar confirmación"
                     >
                       <UndoIcon />
-                      <span className="button-text">Cancelar</span>
+                      <span>Cancelar</span>
                     </button>
                   )}
                   {onReinvite && guest.status === 'declined' && (
                     <button
-                      className="button button-success button-small button-icon button-with-text"
+                      className="button button-success button-compact"
                       onClick={() => onReinvite(guest.id)}
                       title="Reinvitar"
                       aria-label="Reinvitar"
                     >
                       <CheckIcon />
-                      <span className="button-text">Reinvitar</span>
+                      <span>Reinvitar</span>
                     </button>
                   )}
                   {onDelete && baseGuestIds && !baseGuestIds.has(guest.id) && (
                     <button
-                      className="button button-danger button-small button-icon button-with-text"
+                      className="button button-danger button-compact"
                       onClick={() => onDelete(guest.id)}
                       title="Eliminar"
                       aria-label="Eliminar invitado"
                     >
                       <DeleteIcon />
-                      <span className="button-text">Eliminar</span>
+                      <span>Eliminar</span>
                     </button>
                   )}
                 </div>
@@ -363,6 +392,13 @@ export const GuestList = ({
               guest={guest}
               onConfirm={onConfirm}
               onDecline={onDecline}
+              onReinvite={onReinvite}
+              onCancelConfirmation={onCancelConfirmation}
+              onDelete={onDelete}
+              baseGuestIds={baseGuestIds}
+              isOpen={openCardId === guest.id}
+              onOpen={onOpenCard}
+              onClose={onCloseCard}
             >
               {cardContent}
             </SwipeableGuestCard>
