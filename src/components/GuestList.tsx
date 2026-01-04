@@ -4,6 +4,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import EditIcon from '@mui/icons-material/Edit';
 import UndoIcon from '@mui/icons-material/Undo';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { SwipeableGuestCard } from './SwipeableGuestCard';
 
 interface GuestListProps {
   title: string;
@@ -237,9 +238,8 @@ export const GuestList = ({
           
           const isHighlighted = highlightedGuestId === guest.id;
           
-          return (
+          const cardContent = (
             <div 
-              key={guest.id} 
               id={`guest-${guest.id}`}
               className={`guest-card ${isHighlighted ? 'guest-highlighted' : ''}`}
             >
@@ -355,6 +355,17 @@ export const GuestList = ({
                 </div>
               )}
             </div>
+          );
+
+          return (
+            <SwipeableGuestCard
+              key={guest.id}
+              guest={guest}
+              onConfirm={onConfirm}
+              onDecline={onDecline}
+            >
+              {cardContent}
+            </SwipeableGuestCard>
           );
         })}
       </div>

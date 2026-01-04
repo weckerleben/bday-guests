@@ -606,19 +606,53 @@ body {
   padding: 0.2rem 0.5rem;
 }
 
-.guest-card {
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
+.swipeable-guest-card-wrapper {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 0;
+}
+
+@media (max-width: 768px) {
+  .swipeable-guest-card-wrapper {
+    border-radius: 0;
+  }
+  
+  .swipe-action-background {
+    border-radius: 0;
+  }
+}
+
+.swipeable-guest-card {
+  position: relative;
+  width: 100%;
+}
+
+.swipe-action-background {
   border-radius: 8px;
+}
+
+.guest-card {
+  background: white;
+  border: none;
+  border-bottom: 1px solid #e5e7eb;
+  border-radius: 0;
   padding: 1rem;
-  transition: all 0.2s ease;
+  transition: background-color 0.15s ease;
   animation: slideIn 0.3s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.guest-card:last-child {
+  border-bottom: none;
 }
 
 .guest-card:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border-color: #d1d5db;
-  transform: translateY(-2px);
+  box-shadow: none;
+  border-color: #e5e7eb;
+  transform: none;
+  background-color: #f9fafb;
 }
 
 @keyframes slideIn {
@@ -826,11 +860,17 @@ body {
 
 /* Responsive Design - Mobile First */
 @media (max-width: 768px) {
+  body {
+    background-color: #ffffff;
+  }
+
   .app-header {
-    padding: 1rem;
+    padding: 0.75rem 1rem;
     position: sticky;
     top: 0;
     z-index: 100;
+    background: #667eea;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.1);
   }
 
   .app-header > div:first-child,
@@ -942,9 +982,10 @@ body {
   }
 
   .app-main {
-    padding: 0.75rem;
+    padding: 0.5rem;
     max-width: 100%;
     overflow-x: hidden;
+    background-color: #f8f9fa;
   }
 
   .mobile-menu-header {
@@ -1001,13 +1042,28 @@ body {
   }
 
   .card {
-    padding: 0.75rem;
+    padding: 1rem;
     margin-bottom: 0.75rem;
+    border-radius: 0;
+    border: none;
+    border-bottom: 1px solid #e5e7eb;
+    box-shadow: none;
+    background: white;
+  }
+
+  .card:last-child {
+    border-bottom: none;
+  }
+
+  .card:hover {
+    box-shadow: none;
   }
 
   .card h2 {
-    font-size: 1.1rem;
+    font-size: 1rem;
     margin-bottom: 0.75rem;
+    font-weight: 600;
+    color: #1f2937;
   }
 
   .card h3 {
@@ -1028,6 +1084,19 @@ body {
     font-size: 0.9rem;
     min-height: 44px; /* Touch target size */
     touch-action: manipulation; /* Prevenir double-tap zoom */
+    border-radius: 8px;
+    font-weight: 500;
+    box-shadow: none;
+  }
+
+  .button:hover:not(:disabled) {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .button:active:not(:disabled) {
+    transform: scale(0.98);
+    opacity: 0.9;
   }
 
   .button-small {
@@ -1035,6 +1104,18 @@ body {
     font-size: 0.85rem;
     min-height: 40px;
     touch-action: manipulation;
+    border-radius: 6px;
+    font-weight: 500;
+  }
+
+  .button-small:hover:not(:disabled) {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .button-small:active:not(:disabled) {
+    transform: scale(0.98);
+    opacity: 0.9;
   }
 
   /* Grid de invitados en una columna en móvil */
@@ -1055,8 +1136,8 @@ body {
   .guests-grid .guest-cards-mobile {
     display: flex !important;
     flex-direction: column !important;
-    gap: 0.5rem;
-    margin-top: 0.5rem;
+    gap: 0;
+    margin-top: 0;
   }
 
   /* Prevenir scroll horizontal en móvil */
@@ -1189,7 +1270,15 @@ body {
 
   /* Estilos de cards y botones en móvil */
   .guest-card {
-    padding: 0.5rem;
+    padding: 1rem;
+    background: white;
+    border: none;
+    border-bottom: 1px solid #e5e7eb;
+    border-radius: 0;
+  }
+
+  .guest-card:last-child {
+    border-bottom: none;
   }
 
   .guest-card-header {
@@ -1197,13 +1286,16 @@ body {
     align-items: center;
     justify-content: space-between;
     gap: 0.5rem;
-    margin-bottom: 0.5rem;
-    padding-bottom: 0.5rem;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #f3f4f6;
   }
 
   .guest-card-header h3 {
-    font-size: 0.95rem;
+    font-size: 1rem;
     margin: 0;
+    font-weight: 600;
+    color: #1f2937;
   }
 
   .guest-card-body {
@@ -1224,38 +1316,40 @@ body {
 
   .guest-card-actions {
     flex-direction: row;
-    gap: 0.4rem;
+    gap: 0.5rem;
     justify-content: stretch;
-    margin-top: 0.5rem;
-    padding-top: 0.5rem;
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #f3f4f6;
   }
 
   .guest-card-actions .button {
     flex: 1;
     min-width: 0;
-    padding: 0.4rem;
-    min-height: 36px;
+    padding: 0.6rem 0.5rem;
+    min-height: 44px;
+    font-weight: 500;
   }
 
   .guest-card-actions .button-icon {
     min-width: auto;
     width: auto;
     height: auto;
-    padding: 0.4rem;
+    padding: 0.5rem;
   }
 
   .guest-card-actions .button-icon svg {
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
   }
 
   .guest-card-actions .button-with-text {
-    gap: 0.4rem;
+    gap: 0.5rem;
   }
 
   .guest-card-actions .button-text {
     display: inline;
-    font-size: 0.85rem;
+    font-size: 0.875rem;
   }
 }
 

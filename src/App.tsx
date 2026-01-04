@@ -15,6 +15,7 @@ import { SyncConfig } from './components/SyncConfig';
 import { SyncStatusIndicator } from './components/SyncStatusIndicator';
 import { SkeletonLoader } from './components/SkeletonLoader';
 import { Toast } from './components/Toast';
+import { SwipeTutorial } from './components/SwipeTutorial';
 import { AUTO_SYNC_INTERVAL_MINUTES, AUTO_SYNC_CHECK_INTERVAL_MS } from './config';
 import './App.css';
 
@@ -409,6 +410,7 @@ function App() {
           </>
         )}
       </main>
+      <SwipeTutorial />
     </div>
   );
 }
