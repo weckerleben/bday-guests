@@ -129,9 +129,13 @@ export const PricingConfig = ({ pricing, onPricingChange }: PricingConfigProps) 
 
   const confirmDelete = () => {
     if (deleteItemId) {
-      setItems(items.filter((item) => item.id !== deleteItemId));
+      const updatedItems = items.filter((item) => item.id !== deleteItemId);
+      setItems(updatedItems);
       setDeleteItemId(null);
       setToast({ message: 'Concepto eliminado correctamente', type: 'success' });
+      // Guardar automáticamente después de eliminar
+      onPricingChange({ items: updatedItems });
+      setHasChanges(false);
     }
   };
 

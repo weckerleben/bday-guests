@@ -90,7 +90,18 @@ export const storage = {
     localStorage.setItem(STORAGE_KEYS.PRICING, JSON.stringify(pricing));
     
     // Sincronizar con la nube en segundo plano (no bloquea la UI)
-    if (syncService.isConfigured() && !syncInProgress) {
+    if (syncService.isConfigured()) {
+      // Si hay una sincronización en curso, esperar un poco y reintentar
+      if (syncInProgress) {
+        // Esperar hasta que termine la sincronización actual (máximo 5 segundos)
+        let attempts = 0;
+        const maxAttempts = 50; // 50 * 100ms = 5 segundos
+        while (syncInProgress && attempts < maxAttempts) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+          attempts++;
+        }
+      }
+      
       syncInProgress = true;
       window.dispatchEvent(new Event('sync-start'));
       // Fire-and-forget: no esperamos a que termine
@@ -98,10 +109,12 @@ export const storage = {
         try {
           const guestStatuses = storage.getGuestStatuses();
           const additionalGuests = storage.getAdditionalGuests();
+          // Leer el pricing más reciente del localStorage para asegurar que tenemos la versión actualizada
+          const currentPricing = storage.getPricing();
           const result = await syncService.save({
             guestStatuses,
             additionalGuests,
-            pricing,
+            pricing: currentPricing,
             lastUpdated: Date.now(),
           });
           if (result.success) {
