@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React from 'react';
 import { Guest } from '../types';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
@@ -25,6 +25,9 @@ interface GuestListProps {
   onDelete?: (id: string) => void;
   showActions: boolean;
   headerAction?: React.ReactNode; // Contenido adicional para el header (ej: botones)
+  openCardId?: string | null;
+  onOpenCard?: (id: string) => void;
+  onCloseCard?: () => void;
 }
 
 export const GuestList = ({
