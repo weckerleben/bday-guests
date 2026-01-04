@@ -5,6 +5,14 @@ import {
   calculateSpots,
   formatCurrency,
 } from '../utils/calculations';
+import PersonIcon from '@mui/icons-material/Person';
+import GroupIcon from '@mui/icons-material/Group';
+import ChildCareIcon from '@mui/icons-material/ChildCare';
+import WarningIcon from '@mui/icons-material/Warning';
+import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
+import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import PeopleIcon from '@mui/icons-material/People';
 
 interface SummaryViewProps {
   guests: Guest[];
@@ -42,38 +50,63 @@ export const SummaryView = ({ guests, pricing }: SummaryViewProps) => {
         <div className="card">
           <h2>Resumen General</h2>
           {spots.availableSpots > 0 && (
-            <div style={{
-              padding: '0.75rem',
-              background: '#fef3c7',
-              border: '1px solid #fbbf24',
-              borderRadius: '6px',
-              marginBottom: '1rem',
-              fontSize: '0.9rem',
-              color: '#92400e',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem'
-            }}>
-              <span>⚠️</span>
+            <div className="summary-warning">
+              <WarningIcon style={{ fontSize: '1rem', flexShrink: 0 }} />
               <span><strong>{spots.availableSpots}</strong> spots disponibles</span>
             </div>
           )}
           <div className="stats-grid">
             <div className="stat-card">
-              <h3>Total Invitados</h3>
+              <div className="stat-card-header">
+                <PeopleIcon className="stat-icon stat-icon-invited" />
+                <h3>Total Invitados</h3>
+              </div>
               <div className="value">{invitedStats.totalGuests}</div>
-              <p style={{ fontSize: '0.85rem', color: '#6b7280', marginTop: '0.5rem' }}>
-                {invitedStats.totalAdults} adultos, {invitedStats.totalChildren} niños,{' '}
-                {invitedStats.totalBabies} bebés
-              </p>
+              <div className="stat-chips">
+                <span className="stat-chip">
+                  <PersonIcon className="stat-chip-icon" />
+                  <span className="stat-chip-label">Adultos</span>
+                  <span className="stat-chip-value">{invitedStats.totalAdults}</span>
+                </span>
+                <span className="stat-chip-separator">•</span>
+                <span className="stat-chip">
+                  <GroupIcon className="stat-chip-icon" />
+                  <span className="stat-chip-label">Niños</span>
+                  <span className="stat-chip-value">{invitedStats.totalChildren}</span>
+                </span>
+                <span className="stat-chip-separator">•</span>
+                <span className="stat-chip">
+                  <ChildCareIcon className="stat-chip-icon" />
+                  <span className="stat-chip-label">Bebés</span>
+                  <span className="stat-chip-value">{invitedStats.totalBabies}</span>
+                </span>
+              </div>
             </div>
             <div className="stat-card">
-              <h3>Total Confirmados</h3>
+              <div className="stat-card-header">
+                <CheckCircleIcon className="stat-icon stat-icon-confirmed" />
+                <h3>Total Confirmados</h3>
+              </div>
               <div className="value">{confirmedStats.totalGuests}</div>
-              <p style={{ fontSize: '0.85rem', color: '#6b7280', marginTop: '0.5rem' }}>
-                {confirmedStats.totalAdults} adultos, {confirmedStats.totalChildren} niños,{' '}
-                {confirmedStats.totalBabies} bebés
-              </p>
+              <div className="stat-chips">
+                <span className="stat-chip">
+                  <PersonIcon className="stat-chip-icon" />
+                  <span className="stat-chip-label">Adultos</span>
+                  <span className="stat-chip-value">{confirmedStats.totalAdults}</span>
+                </span>
+                <span className="stat-chip-separator">•</span>
+                <span className="stat-chip">
+                  <GroupIcon className="stat-chip-icon" />
+                  <span className="stat-chip-label">Niños</span>
+                  <span className="stat-chip-value">{confirmedStats.totalChildren}</span>
+                </span>
+                <span className="stat-chip-separator">•</span>
+                <span className="stat-chip">
+                  <ChildCareIcon className="stat-chip-icon" />
+                  <span className="stat-chip-label">Bebés</span>
+                  <span className="stat-chip-value">{confirmedStats.totalBabies}</span>
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -118,11 +151,17 @@ export const SummaryView = ({ guests, pricing }: SummaryViewProps) => {
               </div>
               <div className="payment-card-body">
                 <div className="payment-card-row">
-                  <span className="payment-card-label">Costos - Invitados:</span>
+                  <span className="payment-card-label">
+                    <AttachMoneyIcon className="payment-card-icon" />
+                    Costos - Invitados:
+                  </span>
                   <span className="payment-card-value">{formatCurrency(3000000)}</span>
                 </div>
                 <div className="payment-card-row">
-                  <span className="payment-card-label">Costos - Confirmados:</span>
+                  <span className="payment-card-label">
+                    <AccountBalanceWalletIcon className="payment-card-icon" />
+                    Costos - Confirmados:
+                  </span>
                   <span className="payment-card-value">{formatCurrency(3000000)}</span>
                 </div>
               </div>
@@ -133,26 +172,38 @@ export const SummaryView = ({ guests, pricing }: SummaryViewProps) => {
               </div>
               <div className="payment-card-body">
                 <div className="payment-card-row">
-                  <span className="payment-card-label">Costos - Invitados:</span>
+                  <span className="payment-card-label">
+                    <AttachMoneyIcon className="payment-card-icon" />
+                    Costos - Invitados:
+                  </span>
                   <span className="payment-card-value">{formatCurrency(Math.max(0, invitedCosts.total - 3000000))}</span>
                 </div>
                 <div className="payment-card-row">
-                  <span className="payment-card-label">Costos - Confirmados:</span>
+                  <span className="payment-card-label">
+                    <AccountBalanceWalletIcon className="payment-card-icon" />
+                    Costos - Confirmados:
+                  </span>
                   <span className="payment-card-value">{formatCurrency(Math.max(0, confirmedCosts.total - 3000000))}</span>
                 </div>
               </div>
             </div>
-            <div className="payment-card" style={{ background: '#f3f4f6', fontWeight: 'bold', fontSize: '1.1rem' }}>
+            <div className="payment-card payment-card-total">
               <div className="payment-card-header">
-                Total
+                <strong>Total</strong>
               </div>
               <div className="payment-card-body">
                 <div className="payment-card-row">
-                  <span className="payment-card-label">Costos - Invitados:</span>
+                  <span className="payment-card-label">
+                    <AttachMoneyIcon className="payment-card-icon" />
+                    Costos - Invitados:
+                  </span>
                   <span className="payment-card-value">{formatCurrency(invitedCosts.total)}</span>
                 </div>
                 <div className="payment-card-row">
-                  <span className="payment-card-label">Costos - Confirmados:</span>
+                  <span className="payment-card-label">
+                    <AccountBalanceWalletIcon className="payment-card-icon" />
+                    Costos - Confirmados:
+                  </span>
                   <span className="payment-card-value">{formatCurrency(confirmedCosts.total)}</span>
                 </div>
               </div>
@@ -208,14 +259,14 @@ export const SummaryView = ({ guests, pricing }: SummaryViewProps) => {
                     <span className="cost-card-label">Precio Unitario:</span>
                     <span className="cost-card-value">{formatCurrency(item.unitPrice)}</span>
                   </div>
-                  <div className="cost-card-row" style={{ fontWeight: 'bold', marginTop: '0.5rem', paddingTop: '0.5rem', borderTop: '1px solid #e5e7eb' }}>
+                  <div className="cost-card-row cost-card-total-row">
                     <span className="cost-card-label">Total:</span>
                     <span className="cost-card-value">{formatCurrency(item.total)}</span>
                   </div>
                 </div>
               </div>
             ))}
-            <div className="cost-card" style={{ background: '#f9fafb', fontWeight: 'bold' }}>
+            <div className="cost-card cost-card-summary">
               <div className="cost-card-row">
                 <span className="cost-card-label">Total (Invitados)</span>
                 <span className="cost-card-value">{formatCurrency(invitedCosts.total)}</span>
@@ -270,17 +321,17 @@ export const SummaryView = ({ guests, pricing }: SummaryViewProps) => {
                     <span className="cost-card-label">Precio Unitario:</span>
                     <span className="cost-card-value">{formatCurrency(item.unitPrice)}</span>
                   </div>
-                  <div className="cost-card-row" style={{ fontWeight: 'bold', marginTop: '0.5rem', paddingTop: '0.5rem', borderTop: '1px solid #e5e7eb' }}>
+                  <div className="cost-card-row cost-card-total-row">
                     <span className="cost-card-label">Total:</span>
                     <span className="cost-card-value">{formatCurrency(item.total)}</span>
                   </div>
                 </div>
               </div>
             ))}
-            <div className="cost-card" style={{ background: '#e0f2fe', fontWeight: 'bold', fontSize: '1.1rem' }}>
+            <div className="cost-card cost-card-summary cost-card-payable">
               <div className="cost-card-row">
-                <span className="cost-card-label" style={{ color: '#0369a1' }}>TOTAL A PAGAR</span>
-                <span className="cost-card-value" style={{ color: '#0369a1' }}>{formatCurrency(confirmedCosts.total)}</span>
+                <span className="cost-card-label">TOTAL A PAGAR</span>
+                <span className="cost-card-value">{formatCurrency(confirmedCosts.total)}</span>
               </div>
             </div>
           </div>
